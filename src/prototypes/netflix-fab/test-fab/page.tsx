@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuthContext } from '@/components/providers/auth-provider'
 import { MovieWithDates } from '@/types/movie'
-import NetflixFABCard from '@/components/movie/netflix-fab-card'
+import NetflixFABCard from '../netflix-fab-card'
 import { redirect } from 'next/navigation'
 
 export default function TestFABPage() {
