@@ -3,12 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useAuthContext } from '@/components/providers/auth-provider'
 import { useFollows } from '@/hooks/use-follows'
+import { MovieCard } from '@/components/movie/movie-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Film, Calendar, Star, Trash2, Search } from 'lucide-react'
+import { Film, Calendar, Star, Search } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
 type FollowType = 'THEATRICAL' | 'STREAMING' | 'BOTH'
 
 interface Movie {
@@ -29,7 +29,7 @@ interface Follow {
 
 export default function Dashboard() {
   const { user, isAuthenticated } = useAuthContext()
-  const { getUserFollows, unfollowMovie, loading } = useFollows()
+  const { getUserFollows, unfollowMovie, followMovie, loading } = useFollows()
   const [follows, setFollows] = useState<Follow[]>([])
   const [groupedMovies, setGroupedMovies] = useState<any[]>([])
   const [loadingFollows, setLoadingFollows] = useState(true)
@@ -103,6 +103,19 @@ export default function Dashboard() {
     fetchFollows()
   }, [isAuthenticated, getUserFollows])
 
+  const handleFollow = async (movieId: number, followType: FollowType) => {
+    try {
+      await followMovie(movieId, followType)
+      // Refresh the follows list after following
+      const userFollows = await getUserFollows()
+      setFollows(userFollows)
+      setGroupedMovies(groupFollowsByMovie(userFollows))
+      setStats(calculateStats(userFollows))
+    } catch (error) {
+      console.error('Error following movie:', error)
+    }
+  }
+
   const handleUnfollow = async (movieId: number, followType?: FollowType) => {
     // Optimistic update - update UI immediately
     const updatedFollows = follows.filter(follow => {
@@ -110,11 +123,11 @@ export default function Dashboard() {
       if (followType && follow.follow_type !== followType) return true
       return false
     })
-    
+
     setFollows(updatedFollows)
     setGroupedMovies(groupFollowsByMovie(updatedFollows))
     setStats(calculateStats(updatedFollows))
-    
+
     try {
       await unfollowMovie(movieId, followType)
       // Refresh the follows list to ensure consistency
@@ -132,19 +145,6 @@ export default function Dashboard() {
     }
   }
 
-  const getFollowTypeBadge = (followType: FollowType) => {
-    const variants = {
-      'THEATRICAL': 'default',
-      'STREAMING': 'secondary',
-      'BOTH': 'destructive'
-    } as const
-
-    return (
-      <Badge variant={variants[followType]}>
-        {followType === 'BOTH' ? 'Theater & Streaming' : followType.toLowerCase()}
-      </Badge>
-    )
-  }
 
   if (!isAuthenticated) {
     return (
@@ -212,11 +212,11 @@ export default function Dashboard() {
         <h2 className="text-2xl font-semibold mb-6">Your Followed Movies</h2>
         
         {loadingFollows ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <div className="aspect-[2/3] bg-muted rounded-t-lg" />
-                <CardContent className="p-4 space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <Card key={i} className="animate-pulse flex flex-col h-full">
+                <div className="aspect-[3/4] bg-muted rounded-t-lg" />
+                <CardContent className="p-3 flex-grow space-y-2">
                   <div className="h-4 bg-muted rounded" />
                   <div className="h-3 bg-muted rounded w-3/4" />
                 </CardContent>
@@ -237,67 +237,21 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             {groupedMovies.map((groupedMovie) => (
-              <Card key={groupedMovie.movies.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-[2/3] relative">
-                  <Image
-                    src={groupedMovie.movies.poster_path 
-                      ? `https://image.tmdb.org/t/p/w500${groupedMovie.movies.poster_path}`
-                      : '/placeholder-poster.svg'
-                    }
-                    alt={groupedMovie.movies.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <CardContent className="p-4 space-y-3">
-                  <div>
-                    <h3 className="font-semibold line-clamp-2 mb-1">
-                      {groupedMovie.movies.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(groupedMovie.movies.release_date).toLocaleDateString()}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      <span className="text-sm font-medium">
-                        {groupedMovie.movies.vote_average.toFixed(1)}
-                      </span>
-                    </div>
-                    <div className="flex gap-1 flex-wrap">
-                      {groupedMovie.followTypes.map((followType: FollowType) => (
-                        <span key={followType}>
-                          {getFollowTypeBadge(followType)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {groupedMovie.movies.overview}
-                  </p>
-
-                  <div className="space-y-2">
-                    {groupedMovie.followTypes.map((followType: FollowType) => (
-                      <Button
-                        key={followType}
-                        variant="destructive"
-                        size="sm"
-                        className="w-full"
-                        onClick={() => handleUnfollow(groupedMovie.movies.id, followType)}
-                        disabled={loading}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Unfollow {followType === 'BOTH' ? 'Both' : followType === 'THEATRICAL' ? 'Theater' : 'Streaming'}
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <MovieCard
+                key={groupedMovie.movies.id}
+                movie={groupedMovie.movies}
+                onFollow={handleFollow}
+                onUnfollow={handleUnfollow}
+                followTypes={groupedMovie.followTypes}
+                loading={loading}
+                unifiedDates={{
+                  usTheatrical: groupedMovie.movies.release_date,
+                  streaming: null // Dashboard doesn't have streaming dates
+                }}
+                className="ring-2 ring-primary/20 bg-primary/5"
+              />
             ))}
           </div>
         )}
