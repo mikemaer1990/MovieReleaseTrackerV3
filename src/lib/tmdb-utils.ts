@@ -40,9 +40,29 @@ export async function enrichMovieWithDates(movie: TMDBMovie): Promise<TMDBMovie 
 }
 
 // Batch enrich multiple movies with release dates
-export async function enrichMoviesWithDates(movies: TMDBMovie[]): Promise<(TMDBMovie & { unifiedDates: UnifiedReleaseDates })[]> {
-  const enrichedMovies = await Promise.all(
-    movies.map(movie => enrichMovieWithDates(movie))
-  )
+// Uses controlled concurrency to avoid overwhelming the API
+export async function enrichMoviesWithDates(
+  movies: TMDBMovie[],
+  concurrency: number = 5
+): Promise<(TMDBMovie & { unifiedDates: UnifiedReleaseDates })[]> {
+  const enrichedMovies: (TMDBMovie & { unifiedDates: UnifiedReleaseDates })[] = []
+
+  // Process movies in batches to control concurrency
+  for (let i = 0; i < movies.length; i += concurrency) {
+    const batch = movies.slice(i, i + concurrency)
+
+    // Process batch in parallel
+    const enrichedBatch = await Promise.all(
+      batch.map(movie => enrichMovieWithDates(movie))
+    )
+
+    enrichedMovies.push(...enrichedBatch)
+
+    // Small delay between batches to respect rate limits (except for last batch)
+    if (i + concurrency < movies.length) {
+      await new Promise(resolve => setTimeout(resolve, 250))
+    }
+  }
+
   return enrichedMovies
 }
