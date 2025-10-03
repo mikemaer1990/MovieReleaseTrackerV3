@@ -18,9 +18,9 @@ export default function SearchPage() {
   
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<TMDBMovie[]>([])
-  const [popularMovies, setPopularMovies] = useState<TMDBMovie[]>([])
+  const [discoverMovies, setDiscoverMovies] = useState<TMDBMovie[]>([])
   const [loading, setLoading] = useState(false)
-  const [popularLoading, setPopularLoading] = useState(true)
+  const [discoverLoading, setDiscoverLoading] = useState(true)
   const [totalPages, setTotalPages] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [followingMovies, setFollowingMovies] = useState<Map<number, FollowType[]>>(new Map())
@@ -32,26 +32,45 @@ export default function SearchPage() {
     }
   }, [isAuthenticated, router])
 
-  // Load popular movies and user follows on mount
+  // Load discover movies (upcoming + popular) and user follows on mount
   useEffect(() => {
     if (isAuthenticated) {
-      fetchPopularMovies()
+      fetchDiscoverMovies()
       fetchUserFollows()
     }
   }, [isAuthenticated])
 
-  const fetchPopularMovies = async () => {
+  const fetchDiscoverMovies = async () => {
     try {
-      setPopularLoading(true)
-      const response = await fetch('/api/movies/popular')
-      if (response.ok) {
-        const data: TMDBSearchResponse = await response.json()
-        setPopularMovies(data.results)
+      setDiscoverLoading(true)
+      // Fetch upcoming and popular in parallel
+      const [upcomingResponse, popularResponse] = await Promise.all([
+        fetch('/api/movies/upcoming?page=1&limit=20'),
+        fetch('/api/movies/popular?page=1')
+      ])
+
+      if (upcomingResponse.ok && popularResponse.ok) {
+        const upcomingData = await upcomingResponse.json()
+        const popularData = await popularResponse.json()
+
+        // Get upcoming movies (guaranteed unreleased)
+        const upcomingMovies = upcomingData.movies || []
+
+        // Get all popular movies (including already released)
+        const popularMovies = popularData.results || []
+
+        // Remove duplicates (movies in both lists)
+        const upcomingIds = new Set(upcomingMovies.map((m: TMDBMovie) => m.id))
+        const uniquePopular = popularMovies.filter((movie: TMDBMovie) => !upcomingIds.has(movie.id))
+
+        // Combine: upcoming first, then unique popular
+        const combinedMovies = [...upcomingMovies, ...uniquePopular]
+        setDiscoverMovies(combinedMovies)
       }
     } catch (error) {
-      console.error('Error fetching popular movies:', error)
+      console.error('Error fetching discover movies:', error)
     } finally {
-      setPopularLoading(false)
+      setDiscoverLoading(false)
     }
   }
 
@@ -229,20 +248,21 @@ export default function SearchPage() {
             </div>
           ) : results.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="flex flex-wrap justify-center gap-4">
                 {results.map((movie) => (
-                  <MovieCard
-                    key={movie.id}
-                    movie={movie}
-                    onFollow={handleFollow}
-                    onUnfollow={handleUnfollow}
-                    followTypes={followingMovies.get(movie.id) || []}
-                    loading={followLoading}
-                    unifiedDates={(movie as any).unifiedDates}
-                  />
+                  <div key={movie.id} className="w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.667rem)] md:w-[calc(25%-0.75rem)] lg:w-[calc(20%-0.8rem)] xl:w-[calc(16.666%-0.833rem)]">
+                    <MovieCard
+                      movie={movie}
+                      onFollow={handleFollow}
+                      onUnfollow={handleUnfollow}
+                      followTypes={followingMovies.get(movie.id) || []}
+                      loading={followLoading}
+                      unifiedDates={(movie as any).unifiedDates}
+                    />
+                  </div>
                 ))}
               </div>
-              
+
               {currentPage < totalPages && (
                 <div className="text-center mt-8">
                   <Button onClick={handleLoadMore} variant="outline">
@@ -259,29 +279,35 @@ export default function SearchPage() {
         </section>
       )}
 
-      {/* Popular Movies */}
+      {/* Discover Movies (Upcoming + Popular Unreleased) */}
       {!query && (
         <section>
-          <h2 className="text-2xl font-semibold mb-6">Popular Movies</h2>
-          
-          {popularLoading ? (
+          <h2 className="text-2xl font-semibold mb-6">Discover Movies</h2>
+          <p className="text-muted-foreground mb-6">
+            Upcoming releases and popular movies you can follow
+          </p>
+
+          {discoverLoading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {popularMovies.map((movie) => (
-                <MovieCard
-                  key={movie.id}
-                  movie={movie}
-                  onFollow={handleFollow}
-                  onUnfollow={handleUnfollow}
-                  followTypes={followingMovies.get(movie.id) || []}
-                  loading={followLoading}
-                  unifiedDates={(movie as any).unifiedDates}
-                />
-              ))}
-            </div>
+            <>
+              <div className="flex flex-wrap justify-center gap-4">
+                {discoverMovies.map((movie) => (
+                  <div key={movie.id} className="w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.667rem)] md:w-[calc(25%-0.75rem)] lg:w-[calc(20%-0.8rem)] xl:w-[calc(16.666%-0.833rem)]">
+                    <MovieCard
+                      movie={movie}
+                      onFollow={handleFollow}
+                      onUnfollow={handleUnfollow}
+                      followTypes={followingMovies.get(movie.id) || []}
+                      loading={followLoading}
+                      unifiedDates={(movie as any).unifiedDates}
+                    />
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </section>
       )}

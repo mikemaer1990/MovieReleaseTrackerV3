@@ -359,7 +359,7 @@ export default function UpcomingMovies() {
       {/* Movies Grid */}
       {!loading && movies.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4 mb-8">
             {movies.map(movie => (
               <MovieCard
                 key={movie.id}

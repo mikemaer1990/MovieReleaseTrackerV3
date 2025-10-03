@@ -100,16 +100,16 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
           {movie.title}
         </h3>
         
-        {/* Release Dates - Compact Single Row */}
-        <div className="flex items-center justify-between text-xs mb-2">
-          <div className="flex items-center">
-            <Film className="h-3 w-3 mr-1 text-yellow-500" />
+        {/* Release Dates - Option 1: Stacked Two-Row Layout */}
+        <div className="space-y-1.5 text-sm mb-2">
+          <div className="flex items-center gap-1.5">
+            <Film className="h-4 w-4 text-yellow-500 shrink-0" />
             <span className="text-foreground font-medium">
               {formatDateWithFallback(unifiedDates?.usTheatrical)}
             </span>
           </div>
-          <div className="flex items-center">
-            <Tv className="h-3 w-3 mr-1 text-amber-500" />
+          <div className="flex items-center gap-1.5">
+            <Tv className="h-4 w-4 text-amber-500 shrink-0" />
             <span className="text-foreground font-medium">
               {formatDateWithFallback(unifiedDates?.streaming)}
             </span>
@@ -148,12 +148,12 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
                 >
                   {isFollowingTheatrical ? (
                     <>
-                      <Check className="h-3 w-3" />
+                      <Check className="h-4 w-4" />
                       <span>Theater</span>
                     </>
                   ) : (
                     <>
-                      <Plus className="h-3 w-3" />
+                      <Plus className="h-4 w-4" />
                       <span>Theater</span>
                     </>
                   )}
@@ -171,13 +171,13 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
                 >
                   {isFollowingStreaming ? (
                     <>
-                      <Check className="h-3 w-3" />
-                      <span>Streaming</span>
+                      <Check className="h-4 w-4" />
+                      <span>Stream</span>
                     </>
                   ) : (
                     <>
-                      <Plus className="h-3 w-3" />
-                      <span>Streaming</span>
+                      <Plus className="h-4 w-4" />
+                      <span>Stream</span>
                     </>
                   )}
                 </Button>
@@ -192,7 +192,7 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
                   disabled={loading}
                   className="w-full flex items-center gap-1.5 transition-colors duration-200 bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 text-black border-yellow-500 hover:from-yellow-400 hover:via-amber-400 hover:to-yellow-500 hover:shadow-md"
                 >
-                  <Plus className="h-3 w-3" />
+                  <Plus className="h-4 w-4" />
                   <span>Follow Both</span>
                 </Button>
               )}
