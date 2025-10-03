@@ -66,3 +66,53 @@ export async function enrichMoviesWithDates(
 
   return enrichedMovies
 }
+
+// Faster batch enrichment - makes single API call per movie with append_to_response
+export async function enrichMoviesWithDatesFast(
+  movies: TMDBMovie[],
+  concurrency: number = 5
+): Promise<(TMDBMovie & { unifiedDates: UnifiedReleaseDates; runtime?: number })[]> {
+  const enrichedMovies: (TMDBMovie & { unifiedDates: UnifiedReleaseDates; runtime?: number })[] = []
+
+  // Process movies in batches to control concurrency
+  for (let i = 0; i < movies.length; i += concurrency) {
+    const batch = movies.slice(i, i + concurrency)
+
+    // Process batch in parallel
+    const enrichedBatch = await Promise.all(
+      batch.map(async (movie) => {
+        try {
+          const movieDetails = await tmdbService.getMovieDetails(movie.id)
+          const unifiedDates = tmdbService.getUnifiedReleaseDates(movieDetails.release_dates)
+          return {
+            ...movie,
+            unifiedDates,
+            runtime: movieDetails.runtime
+          }
+        } catch (error) {
+          console.error(`Failed to enrich movie ${movie.id}:`, error)
+          return {
+            ...movie,
+            runtime: undefined,
+            unifiedDates: {
+              usTheatrical: null,
+              streaming: null,
+              primary: null,
+              limited: null,
+              digital: null,
+            }
+          }
+        }
+      })
+    )
+
+    enrichedMovies.push(...enrichedBatch)
+
+    // Small delay between batches to respect rate limits (except for last batch)
+    if (i + concurrency < movies.length) {
+      await new Promise(resolve => setTimeout(resolve, 250))
+    }
+  }
+
+  return enrichedMovies
+}

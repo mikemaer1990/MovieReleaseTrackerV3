@@ -9,7 +9,7 @@ import { MobileMenu } from '@/components/ui/mobile-menu'
 import { Film, Search, LogOut } from 'lucide-react'
 
 export function Header() {
-  const { user, signOut, isAuthenticated } = useAuthContext()
+  const { user, signOut, isAuthenticated, loading } = useAuthContext()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const toggleMobileMenu = () => {
@@ -34,7 +34,7 @@ export function Header() {
             </div>
 
             {/* Desktop Navigation */}
-            {isAuthenticated && (
+            {!loading && isAuthenticated && (
               <nav className="hidden md:flex items-center space-x-6">
                 <Link
                   href="/search"
@@ -60,7 +60,9 @@ export function Header() {
 
             {/* Desktop Auth Section */}
             <div className="hidden md:flex items-center space-x-4">
-              {isAuthenticated ? (
+              {loading ? (
+                <div className="w-32 h-8" />
+              ) : isAuthenticated ? (
                 <div className="flex items-center space-x-4">
                   <span className="text-sm text-muted-foreground">
                     Welcome, {user?.name || user?.email}

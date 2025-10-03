@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { UpcomingCacheService } from '@/lib/services/upcoming-cache-service'
-import { enrichMoviesWithDates } from '@/lib/tmdb-utils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,14 +30,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get movies from cache service
+    // Get movies from cache service (already enriched with runtime and release dates)
     const result = await UpcomingCacheService.getUpcomingMovies(sortBy, page, limit)
 
-    // Enrich movies with unified release dates
-    const enrichedMovies = await enrichMoviesWithDates(result.movies)
-
     return NextResponse.json({
-      movies: enrichedMovies,
+      movies: result.movies,
       pagination: result.pagination,
       sort: sortBy,
       success: true

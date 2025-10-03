@@ -79,7 +79,7 @@ export default function UpcomingMovies() {
   const fetchUpcomingMovies = async (page: number = 1, sort: SortType = 'popularity') => {
     try {
       setLoading(page === 1) // Only show loading for first page
-      const response = await fetch(`/api/movies/upcoming?sort=${sort}&page=${page}&limit=20`)
+      const response = await fetch(`/api/movies/upcoming?sort=${sort}&page=${page}&limit=30`)
 
       if (!response.ok) {
         throw new Error('Failed to fetch upcoming movies')

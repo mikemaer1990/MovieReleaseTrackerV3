@@ -7,7 +7,12 @@ import { Film, Search, Calendar, Bell } from 'lucide-react'
 import Link from 'next/link'
 
 export default function Home() {
-  const { user, isAuthenticated } = useAuthContext()
+  const { user, isAuthenticated, loading } = useAuthContext()
+
+  // Show nothing while checking authentication to prevent flash
+  if (loading) {
+    return null
+  }
 
   if (isAuthenticated) {
     return (

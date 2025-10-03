@@ -1,6 +1,7 @@
 import { TMDBMovie, TMDBSearchResponse } from '@/types/movie'
 import { tmdbService } from '@/lib/tmdb'
 import { CacheService } from '@/lib/redis'
+import { enrichMoviesWithDatesFast } from '@/lib/tmdb-utils'
 
 interface UpcomingCacheData {
   popularitySorted: TMDBMovie[]
@@ -147,7 +148,7 @@ class UpcomingCacheService {
       const validMovies = this.filterAndValidateMovies(allMovies, today, sixMonthsCutoff)
       stats.moviesWithin6Months = validMovies.length
 
-      console.log(`Cache build completed:`, {
+      console.log(`Pre-enrichment validation completed:`, {
         totalFetched: stats.totalFetched,
         duplicatesRemoved: stats.duplicatesRemoved,
         validMovies: validMovies.length,
@@ -155,16 +156,37 @@ class UpcomingCacheService {
         dateRange: `${startDate} to ${endDate}`
       })
 
+      // Enrich movies with runtime and release dates
+      console.log(`Enriching ${validMovies.length} movies with runtime and release dates...`)
+      const enrichedMovies = await enrichMoviesWithDatesFast(validMovies)
+
+      // Filter by runtime (>= 60 minutes for feature films)
+      // Keep movies with no runtime (upcoming movies often don't have runtime yet)
+      const moviesWithValidRuntime = enrichedMovies.filter(movie => {
+        const runtime = (movie as any).runtime
+        // Keep if: no runtime data OR runtime >= 60 minutes
+        return runtime === undefined || runtime === null || runtime === 0 || runtime >= 60
+      })
+
+      console.log(`Cache build completed:`, {
+        totalFetched: stats.totalFetched,
+        validMovies: validMovies.length,
+        enrichedMovies: enrichedMovies.length,
+        afterRuntimeFilter: moviesWithValidRuntime.length,
+        filteredByRuntime: enrichedMovies.length - moviesWithValidRuntime.length,
+        dateRange: `${startDate} to ${endDate}`
+      })
+
       // Create sorted datasets
-      const popularitySorted = [...validMovies].sort((a, b) => b.popularity - a.popularity)
-      const releaseDateSorted = [...validMovies].sort((a, b) =>
+      const popularitySorted = [...moviesWithValidRuntime].sort((a, b) => b.popularity - a.popularity)
+      const releaseDateSorted = [...moviesWithValidRuntime].sort((a, b) =>
         new Date(a.release_date).getTime() - new Date(b.release_date).getTime()
       )
 
       const cacheData: UpcomingCacheData = {
         popularitySorted,
         releaseDateSorted,
-        totalCount: validMovies.length,
+        totalCount: moviesWithValidRuntime.length,
         cacheBuiltAt: new Date().toISOString(),
         dateRangeEnd: sixMonthsCutoff.toISOString()
       }
@@ -305,6 +327,11 @@ class UpcomingCacheService {
 
       // Must be within 6 months
       if (movieDate > sixMonthsCutoff) {
+        return false
+      }
+
+      // Must have a poster
+      if (!movie.poster_path) {
         return false
       }
 

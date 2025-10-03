@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { tmdbService } from '@/lib/tmdb'
-import { enrichMoviesWithDates } from '@/lib/tmdb-utils'
+import { enrichMoviesWithDatesFast } from '@/lib/tmdb-utils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,9 +8,12 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
 
     const results = await tmdbService.getPopularMovies(page)
-    
-    // Enrich movies with unified release dates
-    const enrichedMovies = await enrichMoviesWithDates(results.results)
+
+    // Filter out adult content as a safety net
+    const filteredMovies = results.results.filter(movie => !movie.adult)
+
+    // Enrich movies with unified release dates using fast method
+    const enrichedMovies = await enrichMoviesWithDatesFast(filteredMovies)
 
     return NextResponse.json({
       ...results,

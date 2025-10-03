@@ -56,8 +56,8 @@ class TMDBService {
 
   async searchMovies(query: string, page: number = 1): Promise<TMDBSearchResponse> {
     const cacheKey = `${CACHE_KEYS.searchResults(query)}:page:${page}`
-    const url = `/search/movie?query=${encodeURIComponent(query)}&page=${page}`
-    
+    const url = `/search/movie?query=${encodeURIComponent(query)}&page=${page}&include_adult=false`
+
     return this.fetchWithCache<TMDBSearchResponse>(url, cacheKey, CACHE_TTL.medium)
   }
 
@@ -70,15 +70,22 @@ class TMDBService {
 
   async getPopularMovies(page: number = 1): Promise<TMDBSearchResponse> {
     const cacheKey = `${CACHE_KEYS.popularMovies()}:page:${page}`
+    const url = `/movie/popular?page=${page}&include_adult=false`
+
+    return this.fetchWithCache<TMDBSearchResponse>(url, cacheKey, CACHE_TTL.long)
+  }
+
+  async getPopularMoviesWithDates(page: number = 1): Promise<TMDBSearchResponse> {
+    const cacheKey = `${CACHE_KEYS.popularMovies()}:enriched:page:${page}`
     const url = `/movie/popular?page=${page}`
-    
+
     return this.fetchWithCache<TMDBSearchResponse>(url, cacheKey, CACHE_TTL.long)
   }
 
   async getUpcomingMovies(page: number = 1): Promise<TMDBSearchResponse> {
     const cacheKey = `${CACHE_KEYS.upcomingMovies()}:page:${page}`
-    const url = `/movie/upcoming?page=${page}`
-    
+    const url = `/movie/upcoming?page=${page}&include_adult=false`
+
     return this.fetchWithCache<TMDBSearchResponse>(url, cacheKey, CACHE_TTL.medium)
   }
 
@@ -92,6 +99,7 @@ class TMDBService {
     const searchParams = new URLSearchParams({
       sort_by: sortBy,
       page: page.toString(),
+      include_adult: 'false',
     })
 
     if (genre) searchParams.append('with_genres', genre.toString())
@@ -124,6 +132,7 @@ class TMDBService {
       'with_original_language': language,
       'sort_by': sortBy,
       'page': page.toString(),
+      'include_adult': 'false',
     })
 
     const url = `/discover/movie?${searchParams.toString()}`

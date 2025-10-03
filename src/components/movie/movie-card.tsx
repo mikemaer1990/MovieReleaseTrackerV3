@@ -105,7 +105,7 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
           <div className="flex items-center gap-1.5">
             <Film className="h-4 w-4 text-yellow-500 shrink-0" />
             <span className="text-foreground font-medium">
-              {formatDateWithFallback(unifiedDates?.usTheatrical)}
+              {formatDateWithFallback(unifiedDates?.usTheatrical || movie.release_date)}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
