@@ -27,11 +27,17 @@ interface Follow {
   movies: Movie
 }
 
+interface GroupedMovie {
+  movie: Movie
+  followTypes: FollowType[]
+  followIds: string[]
+}
+
 export default function Dashboard() {
-  const { user, isAuthenticated } = useAuthContext()
+  const { isAuthenticated } = useAuthContext()
   const { getUserFollows, unfollowMovie, followMovie, loading } = useFollows()
   const [follows, setFollows] = useState<Follow[]>([])
-  const [groupedMovies, setGroupedMovies] = useState<any[]>([])
+  const [groupedMovies, setGroupedMovies] = useState<GroupedMovie[]>([])
   const [loadingFollows, setLoadingFollows] = useState(true)
   const [stats, setStats] = useState({
     total: 0,
@@ -42,12 +48,12 @@ export default function Dashboard() {
   const calculateStats = (userFollows: Follow[]) => {
     const grouped = groupFollowsByMovie(userFollows)
     const total = grouped.length
-    
-    const theatrical = grouped.filter((movie: any) => 
+
+    const theatrical = grouped.filter((movie: GroupedMovie) =>
       movie.followTypes.some((type: FollowType) => type === 'THEATRICAL' || type === 'BOTH')
     ).length
-    
-    const streaming = grouped.filter((movie: any) => 
+
+    const streaming = grouped.filter((movie: GroupedMovie) =>
       movie.followTypes.some((type: FollowType) => type === 'STREAMING' || type === 'BOTH')
     ).length
     

@@ -32,7 +32,7 @@ export default function Home() {
                 <span>Search Movies</span>
               </CardTitle>
               <CardDescription>
-                Find new movies to follow and get notified when they're released
+                Find new movies to follow and get notified when they&apos;re released
               </CardDescription>
             </CardHeader>
             <CardContent>

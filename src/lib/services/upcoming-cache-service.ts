@@ -3,6 +3,10 @@ import { tmdbService } from '@/lib/tmdb'
 import { CacheService } from '@/lib/redis'
 import { enrichMoviesWithDatesFast } from '@/lib/tmdb-utils'
 
+interface MovieWithRuntime extends TMDBMovie {
+  runtime?: number | null
+}
+
 interface UpcomingCacheData {
   popularitySorted: TMDBMovie[]
   releaseDateSorted: TMDBMovie[]
@@ -11,17 +15,25 @@ interface UpcomingCacheData {
   dateRangeEnd: string
 }
 
+interface FetchStats {
+  totalFetched: number
+  totalPages: number
+  duplicatesRemoved: number
+  moviesWithin6Months: number
+  foundMoviesBeyondCutoff: boolean
+}
+
 interface CacheBuildResult {
   success: boolean
   data?: UpcomingCacheData
   error?: string
-  stats: {
-    totalFetched: number
-    totalPages: number
-    duplicatesRemoved: number
-    moviesWithin6Months: number
-    foundMoviesBeyondCutoff: boolean
-  }
+  stats: FetchStats
+}
+
+interface CacheMetadata {
+  cacheBuiltAt: string
+  dateRangeEnd: string
+  totalCount: number
 }
 
 class UpcomingCacheService {
@@ -163,7 +175,7 @@ class UpcomingCacheService {
       // Filter by runtime (>= 60 minutes for feature films)
       // Keep movies with no runtime (upcoming movies often don't have runtime yet)
       const moviesWithValidRuntime = enrichedMovies.filter(movie => {
-        const runtime = (movie as any).runtime
+        const runtime = (movie as MovieWithRuntime).runtime
         // Keep if: no runtime data OR runtime >= 60 minutes
         return runtime === undefined || runtime === null || runtime === 0 || runtime >= 60
       })
@@ -229,7 +241,7 @@ class UpcomingCacheService {
     sixMonthsCutoff: Date,
     allMovies: TMDBMovie[],
     seenMovieIds: Set<number>,
-    stats: any
+    stats: FetchStats
   ): Promise<void> {
     let page = 1
     let reachedDateBoundary = false
@@ -372,10 +384,10 @@ class UpcomingCacheService {
    */
   static async getCacheInfo(): Promise<{
     isCached: boolean
-    metadata?: any
+    metadata?: CacheMetadata
     ageInHours?: number
   }> {
-    const metadata = await CacheService.get(this.CACHE_KEY_METADATA)
+    const metadata = await CacheService.get(this.CACHE_KEY_METADATA) as CacheMetadata | null
 
     if (!metadata) {
       return { isCached: false }

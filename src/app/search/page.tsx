@@ -8,8 +8,15 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Search, Loader2 } from 'lucide-react'
-import { TMDBMovie, TMDBSearchResponse, FollowType } from '@/types/movie'
+import { TMDBMovie, TMDBSearchResponse, FollowType, UnifiedReleaseDates } from '@/types/movie'
 import { useFollows } from '@/hooks/use-follows'
+
+interface FollowRecord {
+  movies: {
+    id: number
+  }
+  follow_type: FollowType
+}
 
 export default function SearchPage() {
   const { isAuthenticated } = useAuthContext()
@@ -78,8 +85,8 @@ export default function SearchPage() {
     try {
       const follows = await getUserFollows()
       const followMap = new Map<number, FollowType[]>()
-      
-      follows.forEach((follow: any) => {
+
+      follows.forEach((follow: FollowRecord) => {
         const movieId = follow.movies.id
         const followType = follow.follow_type
         
@@ -203,7 +210,7 @@ export default function SearchPage() {
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold text-primary">Discover Movies</h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Search for movies you want to follow and get notified when they're released
+          Search for movies you want to follow and get notified when they&apos;re released
         </p>
       </div>
 
@@ -257,7 +264,7 @@ export default function SearchPage() {
                       onUnfollow={handleUnfollow}
                       followTypes={followingMovies.get(movie.id) || []}
                       loading={followLoading}
-                      unifiedDates={(movie as any).unifiedDates}
+                      unifiedDates={(movie as TMDBMovie & { unifiedDates?: UnifiedReleaseDates }).unifiedDates}
                     />
                   </div>
                 ))}
@@ -273,7 +280,7 @@ export default function SearchPage() {
             </>
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No movies found for "{query}"</p>
+              <p className="text-muted-foreground">No movies found for &quot;{query}&quot;</p>
             </div>
           )}
         </section>
@@ -302,7 +309,7 @@ export default function SearchPage() {
                       onUnfollow={handleUnfollow}
                       followTypes={followingMovies.get(movie.id) || []}
                       loading={followLoading}
-                      unifiedDates={(movie as any).unifiedDates}
+                      unifiedDates={(movie as TMDBMovie & { unifiedDates?: UnifiedReleaseDates }).unifiedDates}
                     />
                   </div>
                 ))}

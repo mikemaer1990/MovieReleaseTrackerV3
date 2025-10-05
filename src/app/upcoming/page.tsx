@@ -6,8 +6,7 @@ import { useFollows } from '@/hooks/use-follows'
 import { supabase } from '@/lib/supabase'
 import { MovieCard } from '@/components/movie/movie-card'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import {
   Film,
   TrendingUp,
@@ -51,13 +50,20 @@ interface UpcomingResponse {
   success: boolean
 }
 
+interface UserFollow {
+  movies: {
+    id: number
+  }
+  follow_type: FollowType
+}
+
 export default function UpcomingMovies() {
-  const { user, isAuthenticated } = useAuthContext()
+  const { isAuthenticated } = useAuthContext()
   const { followMovie, unfollowMovie, loading: followLoading } = useFollows()
 
   // State
   const [movies, setMovies] = useState<Movie[]>([])
-  const [userFollows, setUserFollows] = useState<any[]>([])
+  const [userFollows, setUserFollows] = useState<UserFollow[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)

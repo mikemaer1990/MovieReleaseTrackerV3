@@ -9,7 +9,7 @@ interface FollowHookResult {
   followMovie: (movieId: number, followType: FollowType) => Promise<void>
   unfollowMovie: (movieId: number, followType?: FollowType) => Promise<void>
   checkFollowStatus: (movieId: number) => Promise<FollowType[]>
-  getUserFollows: () => Promise<any[]>
+  getUserFollows: () => Promise<unknown[]>
   loading: boolean
 }
 
