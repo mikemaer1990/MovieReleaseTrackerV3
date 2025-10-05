@@ -32,9 +32,8 @@ export async function GET(request: NextRequest) {
     console.log(`[Cron] daily-releases completed in ${duration}ms`)
 
     return NextResponse.json({
-      success: true,
-      duration: `${duration}ms`,
-      ...result
+      ...result,
+      duration: `${duration}ms`
     })
   } catch (error) {
     console.error('[Cron] daily-releases failed:', error)
