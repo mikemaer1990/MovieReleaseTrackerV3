@@ -121,3 +121,133 @@ export interface ReleaseDate {
   certification: string | null
   createdAt: Date
 }
+
+// TMDB Credits Types
+export interface TMDBCast {
+  adult: boolean
+  gender: number | null
+  id: number
+  known_for_department: string
+  name: string
+  original_name: string
+  popularity: number
+  profile_path: string | null
+  cast_id: number
+  character: string
+  credit_id: string
+  order: number
+}
+
+export interface TMDBCrew {
+  adult: boolean
+  gender: number | null
+  id: number
+  known_for_department: string
+  name: string
+  original_name: string
+  popularity: number
+  profile_path: string | null
+  credit_id: string
+  department: string
+  job: string
+}
+
+export interface TMDBCredits {
+  id: number
+  cast: TMDBCast[]
+  crew: TMDBCrew[]
+}
+
+// TMDB Video Types
+export interface TMDBVideo {
+  iso_639_1: string
+  iso_3166_1: string
+  name: string
+  key: string
+  site: string
+  size: number
+  type: string // 'Trailer', 'Teaser', 'Clip', 'Featurette', 'Behind the Scenes'
+  official: boolean
+  published_at: string
+  id: string
+}
+
+export interface TMDBVideos {
+  id: number
+  results: TMDBVideo[]
+}
+
+// TMDB Images Types
+export interface TMDBImage {
+  aspect_ratio: number
+  height: number
+  iso_639_1: string | null
+  file_path: string
+  vote_average: number
+  vote_count: number
+  width: number
+}
+
+export interface TMDBImages {
+  id: number
+  backdrops: TMDBImage[]
+  logos: TMDBImage[]
+  posters: TMDBImage[]
+}
+
+// TMDB Watch Providers Types
+export interface TMDBWatchProvider {
+  logo_path: string
+  provider_id: number
+  provider_name: string
+  display_priority: number
+}
+
+export interface TMDBWatchProviderResult {
+  link: string
+  flatrate?: TMDBWatchProvider[] // Subscription services
+  rent?: TMDBWatchProvider[]
+  buy?: TMDBWatchProvider[]
+}
+
+export interface TMDBWatchProviders {
+  id: number
+  results: {
+    [countryCode: string]: TMDBWatchProviderResult
+  }
+}
+
+// TMDB Reviews Types
+export interface TMDBReview {
+  author: string
+  author_details: {
+    name: string
+    username: string
+    avatar_path: string | null
+    rating: number | null
+  }
+  content: string
+  created_at: string
+  id: string
+  updated_at: string
+  url: string
+}
+
+export interface TMDBReviews {
+  id: number
+  page: number
+  results: TMDBReview[]
+  total_pages: number
+  total_results: number
+}
+
+// Enhanced Movie Details with all append_to_response data
+export interface TMDBEnhancedMovieDetails extends TMDBMovieDetails {
+  credits?: TMDBCredits
+  videos?: TMDBVideos
+  images?: TMDBImages
+  'watch/providers'?: TMDBWatchProviders
+  similar?: TMDBSearchResponse
+  recommendations?: TMDBSearchResponse
+  reviews?: TMDBReviews
+}

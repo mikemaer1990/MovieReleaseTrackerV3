@@ -1,9 +1,10 @@
-import { 
-  TMDBMovie, 
-  TMDBMovieDetails, 
-  TMDBSearchResponse, 
+import {
+  TMDBMovie,
+  TMDBMovieDetails,
+  TMDBSearchResponse,
   UnifiedReleaseDates,
-  TMDBReleaseDateResult 
+  TMDBReleaseDateResult,
+  TMDBEnhancedMovieDetails
 } from '@/types/movie'
 import { CacheService, CACHE_KEYS, CACHE_TTL } from './redis'
 
@@ -64,8 +65,15 @@ class TMDBService {
   async getMovieDetails(movieId: number): Promise<TMDBMovieDetails> {
     const cacheKey = CACHE_KEYS.movieDetails(movieId)
     const url = `/movie/${movieId}?append_to_response=release_dates`
-    
+
     return this.fetchWithCache<TMDBMovieDetails>(url, cacheKey, CACHE_TTL.day)
+  }
+
+  async getEnhancedMovieDetails(movieId: number): Promise<TMDBEnhancedMovieDetails> {
+    const cacheKey = `${CACHE_KEYS.movieDetails(movieId)}:enhanced`
+    const url = `/movie/${movieId}?append_to_response=credits,videos,images,watch/providers,similar,recommendations,reviews,release_dates`
+
+    return this.fetchWithCache<TMDBEnhancedMovieDetails>(url, cacheKey, CACHE_TTL.day)
   }
 
   async getPopularMovies(page: number = 1): Promise<TMDBSearchResponse> {
@@ -212,6 +220,22 @@ class TMDBService {
   getBackdropUrl(backdropPath: string | null, size: 'w300' | 'w780' | 'w1280' | 'original' = 'w1280'): string | null {
     if (!backdropPath) return null
     return `${TMDB_IMAGE_BASE_URL}/${size}${backdropPath}`
+  }
+
+  /**
+   * Get profile image URL with different sizes
+   */
+  getProfileUrl(profilePath: string | null, size: 'w45' | 'w185' | 'h632' | 'original' = 'w185'): string | null {
+    if (!profilePath) return null
+    return `${TMDB_IMAGE_BASE_URL}/${size}${profilePath}`
+  }
+
+  /**
+   * Get logo URL with different sizes
+   */
+  getLogoUrl(logoPath: string | null, size: 'w45' | 'w92' | 'w154' | 'w185' | 'w300' | 'w500' | 'original' = 'w154'): string | null {
+    if (!logoPath) return null
+    return `${TMDB_IMAGE_BASE_URL}/${size}${logoPath}`
   }
 }
 

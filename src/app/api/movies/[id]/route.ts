@@ -6,8 +6,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await params
-    const movieId = parseInt(resolvedParams.id)
+    const { id } = await params
+    const movieId = parseInt(id, 10)
 
     if (isNaN(movieId)) {
       return NextResponse.json(
@@ -16,15 +16,27 @@ export async function GET(
       )
     }
 
-    const movie = await tmdbService.getMovieDetails(movieId)
-    const releaseDates = tmdbService.getUnifiedReleaseDates(movie.release_dates)
+    // Fetch enhanced movie details from TMDB with all append_to_response data
+    const movieDetails = await tmdbService.getEnhancedMovieDetails(movieId)
 
+    // Get unified release dates
+    const unifiedDates = tmdbService.getUnifiedReleaseDates(movieDetails.release_dates)
+
+    // Return enhanced movie details with unified dates
     return NextResponse.json({
-      ...movie,
-      unifiedDates: releaseDates,
+      ...movieDetails,
+      unifiedDates,
     })
   } catch (error) {
-    console.error('Movie details error:', error)
+    console.error('Error fetching movie details:', error)
+
+    if (error instanceof Error && error.message.includes('404')) {
+      return NextResponse.json(
+        { error: 'Movie not found' },
+        { status: 404 }
+      )
+    }
+
     return NextResponse.json(
       { error: 'Failed to fetch movie details' },
       { status: 500 }
