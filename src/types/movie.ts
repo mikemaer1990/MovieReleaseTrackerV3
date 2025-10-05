@@ -104,7 +104,7 @@ export interface Movie {
   posterPath: string | null
   releaseDate: string | null
   overview: string | null
-  genres: Record<string, unknown> | null // JSON
+  genres: Record<string, unknown> | { id: number; name: string }[] | null
   popularity: number | null
   voteAverage: number | null
   createdAt: Date
