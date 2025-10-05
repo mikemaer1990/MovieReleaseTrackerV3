@@ -133,12 +133,12 @@ export class DiscoverDatesService {
           const releaseDates = movieDetails.release_dates?.results || []
 
           // Find US release dates
-          const usReleases = releaseDates.find((rd: any) => rd.iso_3166_1 === 'US')
+          const usReleases = releaseDates.find((rd) => rd.iso_3166_1 === 'US')
           const usReleaseDates = usReleases?.release_dates || []
 
           // Extract theatrical (type 3) and streaming (type 4) dates
-          const theatrical = usReleaseDates.find((rd: any) => rd.type === 3)
-          const streaming = usReleaseDates.find((rd: any) => rd.type === 4)
+          const theatrical = usReleaseDates.find((rd) => rd.type === 3)
+          const streaming = usReleaseDates.find((rd) => rd.type === 4)
 
           const theatricalDate = theatrical?.release_date?.split('T')[0] || null
           const streamingDate = streaming?.release_date?.split('T')[0] || null
@@ -289,8 +289,12 @@ export class DiscoverDatesService {
               movie: {
                 id: movie.movieId,
                 title: movie.title,
-                poster_path: movie.posterPath
-              } as any,
+                poster_path: movie.posterPath,
+                overview: '',
+                release_date: '',
+                vote_average: 0,
+                popularity: 0
+              },
               theatricalDate: movie.theatricalDate,
               streamingDate: movie.streamingDate
             })
@@ -299,8 +303,12 @@ export class DiscoverDatesService {
               movie: {
                 id: m.movieId,
                 title: m.title,
-                poster_path: m.posterPath
-              } as any,
+                poster_path: m.posterPath,
+                overview: '',
+                release_date: '',
+                vote_average: 0,
+                popularity: 0
+              },
               theatricalDate: m.theatricalDate,
               streamingDate: m.streamingDate
             }))

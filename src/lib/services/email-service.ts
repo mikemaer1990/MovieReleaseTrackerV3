@@ -30,8 +30,9 @@ class EmailService {
     }
 
     // Configure Brevo API client
-    this.apiInstance = new TransactionalEmailsApi();
-    (this.apiInstance as any).authentications.apiKey.apiKey = apiKey
+    this.apiInstance = new TransactionalEmailsApi()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(this.apiInstance as any).authentications.apiKey.apiKey = apiKey
   }
 
   /**
