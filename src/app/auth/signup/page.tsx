@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthContext } from '@/components/providers/auth-provider'
 import { Button } from '@/components/ui/button'
@@ -19,7 +18,6 @@ export default function SignUpPage() {
   const [success, setSuccess] = useState(false)
 
   const { signUp } = useAuthContext()
-  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -74,7 +72,7 @@ export default function SignUpPage() {
                       Account Created!
                     </h3>
                     <p className="text-sm text-green-800 dark:text-green-200 mb-3">
-                      We've sent a confirmation email to <strong>{email}</strong>.
+                      We&apos;ve sent a confirmation email to <strong>{email}</strong>.
                     </p>
                     <p className="text-sm text-green-700 dark:text-green-300">
                       Please check your inbox and click the confirmation link to activate your account.
@@ -86,7 +84,7 @@ export default function SignUpPage() {
               <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                 <p className="text-xs text-blue-700 dark:text-blue-300 flex items-center">
                   <span className="mr-2">💡</span>
-                  Tip: Check your spam folder if you don't see it within a few minutes.
+                  Tip: Check your spam folder if you don&apos;t see it within a few minutes.
                 </p>
               </div>
 
