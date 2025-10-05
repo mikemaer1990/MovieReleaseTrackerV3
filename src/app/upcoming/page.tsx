@@ -6,7 +6,8 @@ import { useFollows } from '@/hooks/use-follows'
 import { supabase } from '@/lib/supabase'
 import { MovieCard } from '@/components/movie/movie-card'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import {
   Film,
   TrendingUp,

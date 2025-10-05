@@ -3,6 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType } from '@/types/movie'
+
+interface FollowRecord {
+  movies: {
+    id: number
+  }
+  follow_type: FollowType
+}
+
 import { useAuthContext } from '@/components/providers/auth-provider'
 import { useFollows } from '@/hooks/use-follows'
 import { Button } from '@/components/ui/button'
@@ -50,10 +58,10 @@ export default function MovieDetailsSwitcher({ movie, initialDesign }: MovieDeta
 
   const loadFollowStatus = async () => {
     try {
-      const follows = await getUserFollows()
+      const follows = await getUserFollows() as FollowRecord[]
       const movieFollows = follows
-        .filter((f: any) => f.movies.id === movie.id)
-        .map((f: any) => f.follow_type)
+        .filter((f) => f.movies.id === movie.id)
+        .map((f) => f.follow_type)
       setFollowTypes(movieFollows)
     } catch (error) {
       console.error('Error loading follow status:', error)

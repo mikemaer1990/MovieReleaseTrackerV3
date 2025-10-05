@@ -243,7 +243,7 @@ export default function Design3({
                   {movie.overview || 'No overview available.'}
                 </p>
                 {movie.tagline && (
-                  <p className="text-zinc-400 italic mt-4 text-lg">"{movie.tagline}"</p>
+                  <p className="text-zinc-400 italic mt-4 text-lg">&quot;{movie.tagline}&quot;</p>
                 )}
               </div>
 
