@@ -61,7 +61,7 @@ export default function MovieDetailsClient({ movie, designVariant }: MovieDetail
     }
   }
 
-  const handleFollow = async (followType: FollowType) => {
+  const handleFollow = async (_movieId: number, followType: FollowType) => {
     try {
       await followMovie(movie.id, followType)
       setFollowTypes(prev => [...prev, followType])
@@ -70,7 +70,7 @@ export default function MovieDetailsClient({ movie, designVariant }: MovieDetail
     }
   }
 
-  const handleUnfollow = async (followType: FollowType) => {
+  const handleUnfollow = async (_movieId: number, followType: FollowType) => {
     try {
       await unfollowMovie(movie.id, followType)
       setFollowTypes(prev => prev.filter(t => t !== followType))
@@ -238,8 +238,8 @@ export default function MovieDetailsClient({ movie, designVariant }: MovieDetail
                     size="lg"
                     variant="ghost"
                     onClick={() => isFollowingTheatrical
-                      ? handleUnfollow(isFollowingBoth ? 'BOTH' : 'THEATRICAL')
-                      : handleFollow('THEATRICAL')
+                      ? handleUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'THEATRICAL')
+                      : handleFollow(movie.id, 'THEATRICAL')
                     }
                     disabled={followLoading}
                     className={cn(
@@ -258,8 +258,8 @@ export default function MovieDetailsClient({ movie, designVariant }: MovieDetail
                     size="lg"
                     variant="ghost"
                     onClick={() => isFollowingStreaming
-                      ? handleUnfollow(isFollowingBoth ? 'BOTH' : 'STREAMING')
-                      : handleFollow('STREAMING')
+                      ? handleUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'STREAMING')
+                      : handleFollow(movie.id, 'STREAMING')
                     }
                     disabled={followLoading}
                     className={cn(
@@ -278,7 +278,7 @@ export default function MovieDetailsClient({ movie, designVariant }: MovieDetail
                     <Button
                       size="lg"
                       variant="ghost"
-                      onClick={() => handleFollow('BOTH')}
+                      onClick={() => handleFollow(movie.id, 'BOTH')}
                       disabled={followLoading}
                       className="bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 text-black hover:from-yellow-400 hover:via-amber-400 hover:to-yellow-500"
                     >

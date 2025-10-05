@@ -26,8 +26,8 @@ interface MovieDetailsClientProps {
   isAuthenticated: boolean
   followTypes: FollowType[]
   followLoading: boolean
-  onFollow: (followType: FollowType) => void
-  onUnfollow: (followType: FollowType) => void
+  onFollow: (movieId: number, followType: FollowType) => void
+  onUnfollow: (movieId: number, followType: FollowType) => void
 }
 
 export default function MovieDetailsClient({
@@ -199,8 +199,8 @@ export default function MovieDetailsClient({
                     size="lg"
                     variant="ghost"
                     onClick={() => isFollowingTheatrical
-                      ? onUnfollow(isFollowingBoth ? 'BOTH' : 'THEATRICAL')
-                      : onFollow('THEATRICAL')
+                      ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'THEATRICAL')
+                      : onFollow(movie.id, 'THEATRICAL')
                     }
                     disabled={followLoading}
                     className={cn(
@@ -219,8 +219,8 @@ export default function MovieDetailsClient({
                     size="lg"
                     variant="ghost"
                     onClick={() => isFollowingStreaming
-                      ? onUnfollow(isFollowingBoth ? 'BOTH' : 'STREAMING')
-                      : onFollow('STREAMING')
+                      ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'STREAMING')
+                      : onFollow(movie.id, 'STREAMING')
                     }
                     disabled={followLoading}
                     className={cn(
@@ -239,7 +239,7 @@ export default function MovieDetailsClient({
                     <Button
                       size="lg"
                       variant="ghost"
-                      onClick={() => onFollow('BOTH')}
+                      onClick={() => onFollow(movie.id, 'BOTH')}
                       disabled={followLoading}
                       className="bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 text-black hover:from-yellow-400 hover:via-amber-400 hover:to-yellow-500"
                     >

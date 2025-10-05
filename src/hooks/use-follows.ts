@@ -5,11 +5,27 @@ import { FollowType } from '@/types/movie'
 import { useAuthContext } from '@/components/providers/auth-provider'
 import { supabase } from '@/lib/supabase'
 
+export interface FollowRecord {
+  id: string
+  follow_type: FollowType
+  created_at: string
+  movies: {
+    id: number
+    title: string
+    poster_path: string | null
+    release_date: string | null
+    vote_average: number | null
+    overview: string | null
+    genres?: Record<string, unknown> | { id: number; name: string }[] | null
+    popularity?: number | null
+  }
+}
+
 interface FollowHookResult {
   followMovie: (movieId: number, followType: FollowType) => Promise<void>
   unfollowMovie: (movieId: number, followType?: FollowType) => Promise<void>
   checkFollowStatus: (movieId: number) => Promise<FollowType[]>
-  getUserFollows: () => Promise<unknown[]>
+  getUserFollows: () => Promise<FollowRecord[]>
   loading: boolean
 }
 

@@ -89,7 +89,7 @@ export default function TestCardsPage() {
           {/* Grid Controls */}
           <div className="flex gap-2 mb-6">
             <span className="text-white text-sm">Grid Density:</span>
-            {[2, 3, 4, 5, 6].map((cols) => (
+            {([2, 3, 4, 5, 6] as const).map((cols) => (
               <Button
                 key={cols}
                 size="sm"

@@ -26,8 +26,8 @@ interface Design2Props {
   isAuthenticated: boolean
   followTypes: FollowType[]
   followLoading: boolean
-  onFollow: (followType: FollowType) => void
-  onUnfollow: (followType: FollowType) => void
+  onFollow: (movieId: number, followType: FollowType) => void
+  onUnfollow: (movieId: number, followType: FollowType) => void
 }
 
 export default function Design2({
@@ -147,8 +147,8 @@ export default function Design2({
                   size="sm"
                   variant="outline"
                   onClick={() => isFollowingTheatrical
-                    ? onUnfollow(isFollowingBoth ? 'BOTH' : 'THEATRICAL')
-                    : onFollow('THEATRICAL')
+                    ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'THEATRICAL')
+                    : onFollow(movie.id, 'THEATRICAL')
                   }
                   disabled={followLoading}
                   className={cn(
@@ -167,8 +167,8 @@ export default function Design2({
                   size="sm"
                   variant="outline"
                   onClick={() => isFollowingStreaming
-                    ? onUnfollow(isFollowingBoth ? 'BOTH' : 'STREAMING')
-                    : onFollow('STREAMING')
+                    ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'STREAMING')
+                    : onFollow(movie.id, 'STREAMING')
                   }
                   disabled={followLoading}
                   className={cn(
@@ -187,7 +187,7 @@ export default function Design2({
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => onFollow('BOTH')}
+                    onClick={() => onFollow(movie.id, 'BOTH')}
                     disabled={followLoading}
                     className="w-full justify-start gap-2 border-zinc-700 bg-yellow-500/10 hover:bg-yellow-500/20"
                   >

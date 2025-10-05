@@ -103,7 +103,7 @@ export function Header() {
         isOpen={isMobileMenuOpen}
         onClose={closeMobileMenu}
         isAuthenticated={isAuthenticated}
-        user={user}
+        user={user ? { name: user.name || undefined, email: user.email || undefined } : null}
         onSignOut={signOut}
       />
     </>

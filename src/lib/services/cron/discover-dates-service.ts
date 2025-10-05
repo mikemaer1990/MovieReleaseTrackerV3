@@ -289,11 +289,14 @@ export class DiscoverDatesService {
               movie: {
                 id: movie.movieId,
                 title: movie.title,
-                poster_path: movie.posterPath,
+                posterPath: movie.posterPath,
                 overview: '',
-                release_date: '',
-                vote_average: 0,
-                popularity: 0
+                releaseDate: '',
+                voteAverage: 0,
+                popularity: 0,
+                genres: null,
+                createdAt: new Date(),
+                updatedAt: new Date()
               },
               theatricalDate: movie.theatricalDate,
               streamingDate: movie.streamingDate
@@ -303,11 +306,14 @@ export class DiscoverDatesService {
               movie: {
                 id: m.movieId,
                 title: m.title,
-                poster_path: m.posterPath,
+                posterPath: m.posterPath,
                 overview: '',
-                release_date: '',
-                vote_average: 0,
-                popularity: 0
+                releaseDate: '',
+                voteAverage: 0,
+                popularity: 0,
+                genres: null,
+                createdAt: new Date(),
+                updatedAt: new Date()
               },
               theatricalDate: m.theatricalDate,
               streamingDate: m.streamingDate

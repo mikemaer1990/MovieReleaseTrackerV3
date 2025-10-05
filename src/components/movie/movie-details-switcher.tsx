@@ -68,7 +68,7 @@ export default function MovieDetailsSwitcher({ movie, initialDesign }: MovieDeta
     }
   }
 
-  const handleFollow = async (followType: FollowType) => {
+  const handleFollow = async (_movieId: number, followType: FollowType) => {
     try {
       await followMovie(movie.id, followType)
       setFollowTypes(prev => [...prev, followType])
@@ -77,7 +77,7 @@ export default function MovieDetailsSwitcher({ movie, initialDesign }: MovieDeta
     }
   }
 
-  const handleUnfollow = async (followType: FollowType) => {
+  const handleUnfollow = async (_movieId: number, followType: FollowType) => {
     try {
       await unfollowMovie(movie.id, followType)
       setFollowTypes(prev => prev.filter(t => t !== followType))

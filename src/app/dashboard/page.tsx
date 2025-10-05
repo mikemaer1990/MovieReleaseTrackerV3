@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAuthContext } from '@/components/providers/auth-provider'
-import { useFollows } from '@/hooks/use-follows'
+import { useFollows, FollowRecord } from '@/hooks/use-follows'
 import { MovieCard } from '@/components/movie/movie-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,32 +11,17 @@ import { Film, Calendar, Star, Search } from 'lucide-react'
 import Link from 'next/link'
 type FollowType = 'THEATRICAL' | 'STREAMING' | 'BOTH'
 
-interface Movie {
-  id: number
-  title: string
-  poster_path: string
-  release_date: string
-  vote_average: number
-  overview: string
-}
-
-interface Follow {
-  id: string
-  follow_type: FollowType
-  created_at: string
-  movies: Movie
-}
-
 interface GroupedMovie {
-  movie: Movie
+  id: string
+  movies: FollowRecord['movies']
   followTypes: FollowType[]
-  followIds: string[]
+  created_at: string
 }
 
 export default function Dashboard() {
   const { isAuthenticated } = useAuthContext()
   const { getUserFollows, unfollowMovie, followMovie, loading } = useFollows()
-  const [follows, setFollows] = useState<Follow[]>([])
+  const [follows, setFollows] = useState<FollowRecord[]>([])
   const [groupedMovies, setGroupedMovies] = useState<GroupedMovie[]>([])
   const [loadingFollows, setLoadingFollows] = useState(true)
   const [stats, setStats] = useState({
@@ -45,7 +30,7 @@ export default function Dashboard() {
     streaming: 0,
   })
 
-  const calculateStats = (userFollows: Follow[]) => {
+  const calculateStats = (userFollows: FollowRecord[]) => {
     const grouped = groupFollowsByMovie(userFollows)
     const total = grouped.length
 
@@ -60,12 +45,12 @@ export default function Dashboard() {
     return { total, theatrical, streaming }
   }
 
-  const groupFollowsByMovie = (userFollows: Follow[]) => {
+  const groupFollowsByMovie = (userFollows: FollowRecord[]) => {
     const movieMap = new Map()
-    
+
     userFollows.forEach((follow) => {
       const movieId = follow.movies.id
-      
+
       if (movieMap.has(movieId)) {
         // Add this follow type to existing movie
         const existingMovie = movieMap.get(movieId)
@@ -80,7 +65,7 @@ export default function Dashboard() {
         })
       }
     })
-    
+
     return Array.from(movieMap.values())
   }
 
@@ -124,7 +109,7 @@ export default function Dashboard() {
 
   const handleUnfollow = async (movieId: number, followType?: FollowType) => {
     // Optimistic update - update UI immediately
-    const updatedFollows = follows.filter(follow => {
+    const updatedFollows = follows.filter((follow: FollowRecord) => {
       if (follow.movies.id !== movieId) return true
       if (followType && follow.follow_type !== followType) return true
       return false
@@ -244,21 +229,43 @@ export default function Dashboard() {
           </Card>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-            {groupedMovies.map((groupedMovie) => (
-              <MovieCard
-                key={groupedMovie.movies.id}
-                movie={groupedMovie.movies}
-                onFollow={handleFollow}
-                onUnfollow={handleUnfollow}
-                followTypes={groupedMovie.followTypes}
-                loading={loading}
-                unifiedDates={{
-                  usTheatrical: groupedMovie.movies.release_date,
-                  streaming: null // Dashboard doesn't have streaming dates
-                }}
-                className="ring-2 ring-primary/20 bg-primary/5"
-              />
-            ))}
+            {groupedMovies.map((groupedMovie) => {
+              // Transform database movie to TMDB format
+              const tmdbMovie = {
+                id: groupedMovie.movies.id,
+                title: groupedMovie.movies.title,
+                poster_path: groupedMovie.movies.poster_path,
+                release_date: groupedMovie.movies.release_date || '',
+                vote_average: groupedMovie.movies.vote_average || 0,
+                overview: groupedMovie.movies.overview || '',
+                backdrop_path: null,
+                genre_ids: [],
+                popularity: groupedMovie.movies.popularity || 0,
+                vote_count: 0,
+                adult: false,
+                original_language: '',
+                original_title: groupedMovie.movies.title,
+              }
+
+              return (
+                <MovieCard
+                  key={groupedMovie.movies.id}
+                  movie={tmdbMovie}
+                  onFollow={handleFollow}
+                  onUnfollow={handleUnfollow}
+                  followTypes={groupedMovie.followTypes}
+                  loading={loading}
+                  unifiedDates={{
+                    usTheatrical: groupedMovie.movies.release_date,
+                    streaming: null,
+                    primary: groupedMovie.movies.release_date,
+                    limited: null,
+                    digital: null,
+                  }}
+                  className="ring-2 ring-primary/20 bg-primary/5"
+                />
+              )
+            })}
           </div>
         )}
       </div>

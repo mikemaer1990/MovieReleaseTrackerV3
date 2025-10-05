@@ -49,6 +49,7 @@ interface UpcomingResponse {
   pagination: PaginationInfo
   sort: SortType
   success: boolean
+  error?: string
 }
 
 interface UserFollow {
@@ -136,7 +137,7 @@ export default function UpcomingMovies() {
   const calculateFollowStats = () => {
     if (!isAuthenticated) return
 
-    const followedMovieIds = new Set(userFollows.map(f => f.movie_id))
+    const followedMovieIds = new Set(userFollows.map(f => f.movies.id))
     const followedUpcomingMovies = movies.filter(movie => followedMovieIds.has(movie.id))
 
     const stats = {
@@ -147,7 +148,7 @@ export default function UpcomingMovies() {
     }
 
     userFollows.forEach(follow => {
-      if (followedMovieIds.has(follow.movie_id)) {
+      if (followedMovieIds.has(follow.movies.id)) {
         if (follow.follow_type === 'THEATRICAL') stats.theatricalCount++
         else if (follow.follow_type === 'STREAMING') stats.streamingCount++
         else if (follow.follow_type === 'BOTH') stats.bothCount++
@@ -216,13 +217,13 @@ export default function UpcomingMovies() {
   // Get follow types for a movie (Level 2 integration)
   const getMovieFollowTypes = (movieId: number): FollowType[] => {
     return userFollows
-      .filter(f => f.movie_id === movieId)
+      .filter(f => f.movies.id === movieId)
       .map(f => f.follow_type)
   }
 
   // Check if movie is followed (Level 2 integration)
   const isMovieFollowed = (movieId: number): boolean => {
-    return userFollows.some(f => f.movie_id === movieId)
+    return userFollows.some(f => f.movies.id === movieId)
   }
 
   // Initial load
@@ -367,19 +368,44 @@ export default function UpcomingMovies() {
       {!loading && movies.length > 0 && (
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4 mb-8">
-            {movies.map(movie => (
-              <MovieCard
-                key={movie.id}
-                movie={movie}
-                onFollow={handleFollow}
-                onUnfollow={handleUnfollow}
-                followTypes={getMovieFollowTypes(movie.id)}
-                loading={followLoading}
-                unifiedDates={movie.unifiedDates}
-                // Level 2 integration - highlight followed movies
-                className={isMovieFollowed(movie.id) ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
-              />
-            ))}
+            {movies.map(movie => {
+              // Transform to TMDB format
+              const tmdbMovie = {
+                id: movie.id,
+                title: movie.title,
+                poster_path: movie.poster_path,
+                release_date: movie.release_date,
+                vote_average: movie.vote_average,
+                overview: movie.overview,
+                backdrop_path: null,
+                genre_ids: [],
+                popularity: movie.popularity,
+                vote_count: 0,
+                adult: false,
+                original_language: '',
+                original_title: movie.title,
+              }
+
+              return (
+                <MovieCard
+                  key={movie.id}
+                  movie={tmdbMovie}
+                  onFollow={handleFollow}
+                  onUnfollow={handleUnfollow}
+                  followTypes={getMovieFollowTypes(movie.id)}
+                  loading={followLoading}
+                  unifiedDates={{
+                    usTheatrical: movie.unifiedDates?.usTheatrical || null,
+                    streaming: movie.unifiedDates?.streaming || null,
+                    primary: movie.release_date,
+                    limited: null,
+                    digital: null,
+                  }}
+                  // Level 2 integration - highlight followed movies
+                  className={isMovieFollowed(movie.id) ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
+                />
+              )
+            })}
           </div>
 
           {/* Pagination */}

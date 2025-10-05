@@ -27,8 +27,8 @@ interface Design5Props {
   isAuthenticated: boolean
   followTypes: FollowType[]
   followLoading: boolean
-  onFollow: (followType: FollowType) => void
-  onUnfollow: (followType: FollowType) => void
+  onFollow: (movieId: number, followType: FollowType) => void
+  onUnfollow: (movieId: number, followType: FollowType) => void
 }
 
 export default function Design5({
@@ -325,8 +325,8 @@ export default function Design5({
                   <Button
                     size="lg"
                     onClick={() => isFollowingTheatrical
-                      ? onUnfollow(isFollowingBoth ? 'BOTH' : 'THEATRICAL')
-                      : onFollow('THEATRICAL')
+                      ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'THEATRICAL')
+                      : onFollow(movie.id, 'THEATRICAL')
                     }
                     disabled={followLoading}
                     className={cn(
@@ -344,8 +344,8 @@ export default function Design5({
                   <Button
                     size="lg"
                     onClick={() => isFollowingStreaming
-                      ? onUnfollow(isFollowingBoth ? 'BOTH' : 'STREAMING')
-                      : onFollow('STREAMING')
+                      ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'STREAMING')
+                      : onFollow(movie.id, 'STREAMING')
                     }
                     disabled={followLoading}
                     className={cn(
@@ -363,7 +363,7 @@ export default function Design5({
                   {!isFollowingBoth && !isFollowingTheatrical && !isFollowingStreaming && (
                     <Button
                       size="lg"
-                      onClick={() => onFollow('BOTH')}
+                      onClick={() => onFollow(movie.id, 'BOTH')}
                       disabled={followLoading}
                       className="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white font-bold shadow-[0_0_18px_rgba(217,119,6,0.4)] hover:shadow-[0_0_25px_rgba(217,119,6,0.6)] gap-2"
                     >

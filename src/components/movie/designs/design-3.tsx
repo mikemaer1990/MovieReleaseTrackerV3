@@ -30,8 +30,8 @@ interface Design3Props {
   isAuthenticated: boolean
   followTypes: FollowType[]
   followLoading: boolean
-  onFollow: (followType: FollowType) => void
-  onUnfollow: (followType: FollowType) => void
+  onFollow: (movieId: number, followType: FollowType) => void
+  onUnfollow: (movieId: number, followType: FollowType) => void
 }
 
 export default function Design3({
@@ -188,8 +188,8 @@ export default function Design3({
                     size="lg"
                     variant="ghost"
                     onClick={() => isFollowingTheatrical
-                      ? onUnfollow(isFollowingBoth ? 'BOTH' : 'THEATRICAL')
-                      : onFollow('THEATRICAL')
+                      ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'THEATRICAL')
+                      : onFollow(movie.id, 'THEATRICAL')
                     }
                     disabled={followLoading}
                     className={cn(
@@ -208,8 +208,8 @@ export default function Design3({
                     size="lg"
                     variant="ghost"
                     onClick={() => isFollowingStreaming
-                      ? onUnfollow(isFollowingBoth ? 'BOTH' : 'STREAMING')
-                      : onFollow('STREAMING')
+                      ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'STREAMING')
+                      : onFollow(movie.id, 'STREAMING')
                     }
                     disabled={followLoading}
                     className={cn(

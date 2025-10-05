@@ -27,8 +27,8 @@ interface Design7Props {
   isAuthenticated: boolean
   followTypes: FollowType[]
   followLoading: boolean
-  onFollow: (followType: FollowType) => void
-  onUnfollow: (followType: FollowType) => void
+  onFollow: (movieId: number, followType: FollowType) => void
+  onUnfollow: (movieId: number, followType: FollowType) => void
 }
 
 export default function Design7({
@@ -230,8 +230,8 @@ export default function Design7({
                   <Button
                     size="lg"
                     onClick={() => isFollowingTheatrical
-                      ? onUnfollow(isFollowingBoth ? 'BOTH' : 'THEATRICAL')
-                      : onFollow('THEATRICAL')
+                      ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'THEATRICAL')
+                      : onFollow(movie.id, 'THEATRICAL')
                     }
                     disabled={followLoading}
                     className={cn(
@@ -250,8 +250,8 @@ export default function Design7({
                   <Button
                     size="lg"
                     onClick={() => isFollowingStreaming
-                      ? onUnfollow(isFollowingBoth ? 'BOTH' : 'STREAMING')
-                      : onFollow('STREAMING')
+                      ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'STREAMING')
+                      : onFollow(movie.id, 'STREAMING')
                     }
                     disabled={followLoading}
                     className={cn(
@@ -270,7 +270,7 @@ export default function Design7({
                   {!isFollowingBoth && !isFollowingTheatrical && !isFollowingStreaming && (
                     <Button
                       size="lg"
-                      onClick={() => onFollow('BOTH')}
+                      onClick={() => onFollow(movie.id, 'BOTH')}
                       disabled={followLoading}
                       className="gap-2 transition-all duration-200 bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500 hover:shadow-lg hover:shadow-yellow-500/50"
                     >

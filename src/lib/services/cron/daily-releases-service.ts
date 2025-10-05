@@ -170,12 +170,14 @@ export class DailyReleasesService {
         const movie: Movie = {
           id: release.movie.id,
           title: release.movie.title,
-          poster_path: release.movie.poster_path,
+          posterPath: release.movie.poster_path,
           overview: release.movie.overview,
-          vote_average: release.movie.vote_average,
-          release_date: today,
+          voteAverage: release.movie.vote_average,
+          releaseDate: today,
           popularity: 0,
-          genres: []
+          genres: [],
+          createdAt: new Date(),
+          updatedAt: new Date()
         }
 
         const userKey = release.user.email

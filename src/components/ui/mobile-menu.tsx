@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Search, User, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -25,20 +25,11 @@ export function MobileMenu({
   const router = useRouter()
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // Close menu on route change
+  // Close menu on route change - Next.js 15 uses usePathname hook
+  const pathname = usePathname()
   useEffect(() => {
-    const handleRouteChange = () => {
-      onClose()
-    }
-
-    if (isOpen) {
-      router.events?.on('routeChangeStart', handleRouteChange)
-    }
-
-    return () => {
-      router.events?.off('routeChangeStart', handleRouteChange)
-    }
-  }, [isOpen, onClose, router.events])
+    onClose()
+  }, [pathname, onClose])
 
   // Handle escape key
   useEffect(() => {
