@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Search, User, LogOut } from 'lucide-react'
+import { Search, User, LogOut, UserPlus, LogIn } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface MobileMenuProps {
@@ -22,8 +22,26 @@ export function MobileMenu({
   user,
   onSignOut,
 }: MobileMenuProps) {
-  const router = useRouter()
   const menuRef = useRef<HTMLDivElement>(null)
+  const backdropRef = useRef<HTMLDivElement>(null)
+  const [backdropClickable, setBackdropClickable] = useState(false)
+
+  // Enable backdrop clicks after a short delay to prevent immediate closure
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => setBackdropClickable(true), 150)
+      return () => clearTimeout(timer)
+    } else {
+      setBackdropClickable(false)
+    }
+  }, [isOpen])
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    // Only close if the click was directly on the backdrop, not propagated from elsewhere
+    if (backdropClickable && e.target === backdropRef.current) {
+      onClose()
+    }
+  }
 
   // Close menu on route change - Next.js 15 uses usePathname hook
   const pathname = usePathname()
@@ -51,35 +69,18 @@ export function MobileMenu({
     }
   }, [isOpen, onClose])
 
-  // Handle outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        onClose()
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isOpen, onClose])
-
-  if (!isOpen) return null
-
   return (
     <>
       {/* Backdrop */}
       <div
+        ref={backdropRef}
         className={cn(
-          "fixed inset-0 bg-black/50 z-40 md:hidden",
+          "fixed top-16 left-0 right-0 bottom-0 bg-black/80 z-40 md:hidden",
           "transition-opacity duration-200 ease-in-out",
-          isOpen ? "opacity-100" : "opacity-0"
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none",
+          !backdropClickable && "pointer-events-none"
         )}
-        onClick={onClose}
+        onClick={handleBackdropClick}
       />
 
       {/* Mobile Menu */}
@@ -87,8 +88,8 @@ export function MobileMenu({
         ref={menuRef}
         className={cn(
           "fixed top-16 left-0 right-0 bg-card border-b border-border z-50 md:hidden",
-          "transform transition-transform duration-300 ease-out",
-          isOpen ? "translate-y-0" : "-translate-y-full"
+          "transform transition-all duration-300 ease-out origin-top",
+          isOpen ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0 pointer-events-none"
         )}
       >
         <div className="container mx-auto px-4 py-6">
@@ -187,14 +188,20 @@ export function MobileMenu({
                     className="w-full"
                     onClick={onClose}
                   >
-                    <Link href="/auth/signin">Sign In</Link>
+                    <Link href="/auth/signin" className="flex items-center justify-center gap-2">
+                      <LogIn className="h-4 w-4" />
+                      <span>Sign In</span>
+                    </Link>
                   </Button>
                   <Button
                     asChild
                     className="w-full"
                     onClick={onClose}
                   >
-                    <Link href="/auth/signup">Sign Up</Link>
+                    <Link href="/auth/signup" className="flex items-center justify-center gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      <span>Sign Up</span>
+                    </Link>
                   </Button>
                 </div>
               </div>

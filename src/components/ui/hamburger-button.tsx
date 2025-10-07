@@ -11,14 +11,25 @@ interface HamburgerButtonProps {
 }
 
 export function HamburgerButton({ isOpen, onClick, className }: HamburgerButtonProps) {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    onClick()
+  }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation()
+  }
+
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={onClick}
+      onClick={handleClick}
+      onMouseDown={handleMouseDown}
       className={cn(
         "md:hidden relative p-2 h-10 w-10",
-        "hover:bg-accent hover:text-accent-foreground",
+        "text-primary hover:bg-accent hover:text-primary/80",
         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
         className
       )}
