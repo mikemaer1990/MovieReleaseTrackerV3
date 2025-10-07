@@ -42,7 +42,7 @@ export default function Home() {
               <div className="md:mt-3">
                 <h3 className="text-base md:text-xl font-semibold">Search Movies</h3>
                 <p className="hidden md:block text-sm md:text-base text-muted-foreground mt-2 mb-4">
-                  Find new movies to follow and get notified when they're released
+                  Find new movies to follow and get notified when they&apos;re released
                 </p>
                 <Button className="hidden md:inline-flex w-full shadow-[0_0_15px_rgba(243,217,107,0.2)] hover:shadow-[0_0_15px_rgba(243,217,107,0.3)] transition-shadow pointer-events-none">
                   Start Searching
