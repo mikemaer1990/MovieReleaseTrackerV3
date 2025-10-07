@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Search, User, LogOut, UserPlus, LogIn } from 'lucide-react'
+import { Search, User, LogOut, UserPlus, LogIn, Film } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface MobileMenuProps {
@@ -182,34 +182,49 @@ export function MobileMenu({
             </nav>
           ) : (
             /* Unauthenticated Menu */
-            <div className="space-y-4">
-              <div className="text-center py-4">
-                <p className="text-muted-foreground text-sm mb-4">
-                  Sign in to track your favorite movies
-                </p>
-                <div className="space-y-3">
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="w-full"
-                    onClick={onClose}
-                  >
-                    <Link href="/auth/signin" className="flex items-center justify-center gap-2">
-                      <LogIn className="h-4 w-4" />
-                      <span>Sign In</span>
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    className="w-full"
-                    onClick={onClose}
-                  >
-                    <Link href="/auth/signup" className="flex items-center justify-center gap-2">
-                      <UserPlus className="h-4 w-4" />
-                      <span>Sign Up</span>
-                    </Link>
-                  </Button>
+            <div className="space-y-6">
+              <div className="text-center py-6">
+                {/* App Icon */}
+                <div className="flex justify-center mb-4">
+                  <div className="bg-primary/10 rounded-full p-4">
+                    <Film className="h-10 w-10 text-primary drop-shadow-[0_0_8px_rgba(243,217,107,0.3)]" />
+                  </div>
                 </div>
+
+                {/* Text Content */}
+                <h3 className="text-xl font-bold text-foreground mb-2">
+                  Sign in to get started
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  Track releases, get notified
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="space-y-3 px-2">
+                <Button
+                  asChild
+                  size="lg"
+                  className="w-full h-12 text-base shadow-[0_0_15px_rgba(243,217,107,0.2)] hover:shadow-[0_0_15px_rgba(243,217,107,0.3)] transition-shadow"
+                  onClick={onClose}
+                >
+                  <Link href="/auth/signup" className="flex items-center justify-center gap-2">
+                    <UserPlus className="h-5 w-5" />
+                    <span>Sign Up</span>
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="w-full h-12 text-base border-2 border-primary/40 hover:border-primary/60 hover:bg-accent/50 transition-all"
+                  onClick={onClose}
+                >
+                  <Link href="/auth/signin" className="flex items-center justify-center gap-2">
+                    <LogIn className="h-5 w-5" />
+                    <span>Sign In</span>
+                  </Link>
+                </Button>
               </div>
             </div>
           )}

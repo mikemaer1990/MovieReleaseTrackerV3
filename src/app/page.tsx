@@ -3,7 +3,7 @@
 import { useAuthContext } from '@/components/providers/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Film, Search, Calendar, Bell, UserPlus, LogIn } from 'lucide-react'
+import { Film, Search, Calendar, Bell, UserPlus, LogIn, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
 export default function Home() {
@@ -29,54 +29,72 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {/* Search Movies */}
-          <div className="flex md:flex-col items-center md:text-center gap-4 md:gap-0 md:space-y-3 p-4 sm:p-6 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors">
-            <div className="flex-shrink-0 bg-primary/10 rounded-full p-3">
-              <Search className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+          <Link
+            href="/search"
+            className="group flex items-center justify-between p-3 md:flex-col md:items-center md:text-center md:gap-0 md:space-y-3 md:p-6 bg-card border border-border rounded-lg hover:border-primary/50 active:bg-accent/10 transition-colors"
+          >
+            <div className="flex items-center gap-3 md:flex-col md:gap-0">
+              <div className="flex-shrink-0 bg-primary/10 rounded-full p-2 md:p-3">
+                <Search className="h-6 w-6 md:h-10 md:w-10 text-primary" />
+              </div>
+              <div className="md:mt-3">
+                <h3 className="text-base md:text-xl font-semibold">Search Movies</h3>
+                <p className="hidden md:block text-sm md:text-base text-muted-foreground mt-2 mb-4">
+                  Find new movies to follow and get notified when they're released
+                </p>
+                <Button className="hidden md:inline-flex w-full shadow-[0_0_15px_rgba(243,217,107,0.2)] hover:shadow-[0_0_15px_rgba(243,217,107,0.3)] transition-shadow pointer-events-none">
+                  Start Searching
+                </Button>
+              </div>
             </div>
-            <div className="flex-1 md:flex-none">
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">Search Movies</h3>
-              <p className="text-sm sm:text-base text-muted-foreground mb-4">
-                Find new movies to follow and get notified when they're released
-              </p>
-              <Button asChild className="w-full shadow-[0_0_15px_rgba(243,217,107,0.2)] hover:shadow-[0_0_15px_rgba(243,217,107,0.3)] transition-shadow">
-                <Link href="/search">Start Searching</Link>
-              </Button>
-            </div>
-          </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground md:hidden flex-shrink-0" />
+          </Link>
 
           {/* My Movies */}
-          <div className="flex md:flex-col items-center md:text-center gap-4 md:gap-0 md:space-y-3 p-4 sm:p-6 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors">
-            <div className="flex-shrink-0 bg-primary/10 rounded-full p-3">
-              <Film className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+          <Link
+            href="/dashboard"
+            className="group flex items-center justify-between p-3 md:flex-col md:items-center md:text-center md:gap-0 md:space-y-3 md:p-6 bg-card border border-border rounded-lg hover:border-primary/50 active:bg-accent/10 transition-colors"
+          >
+            <div className="flex items-center gap-3 md:flex-col md:gap-0">
+              <div className="flex-shrink-0 bg-primary/10 rounded-full p-2 md:p-3">
+                <Film className="h-6 w-6 md:h-10 md:w-10 text-primary" />
+              </div>
+              <div className="md:mt-3">
+                <h3 className="text-base md:text-xl font-semibold">My Movies</h3>
+                <p className="hidden md:block text-sm md:text-base text-muted-foreground mt-2 mb-4">
+                  Manage your followed movies and notification preferences
+                </p>
+                <Button variant="outline" className="hidden md:inline-flex w-full border-2 border-primary/40 hover:border-primary/60 hover:border-[2.5px] hover:bg-accent/50 transition-all pointer-events-none">
+                  View Dashboard
+                </Button>
+              </div>
             </div>
-            <div className="flex-1 md:flex-none">
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">My Movies</h3>
-              <p className="text-sm sm:text-base text-muted-foreground mb-4">
-                Manage your followed movies and notification preferences
-              </p>
-              <Button asChild variant="outline" className="w-full border-2 border-primary/40 hover:border-primary/60 hover:border-[2.5px] hover:bg-accent/50 transition-all">
-                <Link href="/dashboard">View Dashboard</Link>
-              </Button>
-            </div>
-          </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground md:hidden flex-shrink-0" />
+          </Link>
 
           {/* Upcoming Releases */}
-          <div className="flex md:flex-col items-center md:text-center gap-4 md:gap-0 md:space-y-3 p-4 sm:p-6 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors">
-            <div className="flex-shrink-0 bg-primary/10 rounded-full p-3">
-              <Calendar className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+          <Link
+            href="/upcoming"
+            className="group flex items-center justify-between p-3 md:flex-col md:items-center md:text-center md:gap-0 md:space-y-3 md:p-6 bg-card border border-border rounded-lg hover:border-primary/50 active:bg-accent/10 transition-colors"
+          >
+            <div className="flex items-center gap-3 md:flex-col md:gap-0">
+              <div className="flex-shrink-0 bg-primary/10 rounded-full p-2 md:p-3">
+                <Calendar className="h-6 w-6 md:h-10 md:w-10 text-primary" />
+              </div>
+              <div className="md:mt-3">
+                <h3 className="text-base md:text-xl font-semibold">Upcoming Releases</h3>
+                <p className="hidden md:block text-sm md:text-base text-muted-foreground mt-2 mb-4">
+                  See what movies are releasing soon
+                </p>
+                <Button variant="outline" className="hidden md:inline-flex w-full border-2 border-primary/40 hover:border-primary/60 hover:border-[2.5px] hover:bg-accent/50 transition-all pointer-events-none">
+                  Browse Releases
+                </Button>
+              </div>
             </div>
-            <div className="flex-1 md:flex-none">
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">Upcoming Releases</h3>
-              <p className="text-sm sm:text-base text-muted-foreground mb-4">
-                See what movies are releasing soon
-              </p>
-              <Button asChild variant="outline" className="w-full border-2 border-primary/40 hover:border-primary/60 hover:border-[2.5px] hover:bg-accent/50 transition-all">
-                <Link href="/upcoming">Browse Releases</Link>
-              </Button>
-            </div>
-          </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground md:hidden flex-shrink-0" />
+          </Link>
         </div>
       </div>
     )
