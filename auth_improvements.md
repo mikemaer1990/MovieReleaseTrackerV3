@@ -10,6 +10,11 @@ Visual Polish:
 UX Enhancements:
 ✅ Show/hide password toggle (Eye/EyeOff icons)
 ✅ Consistent styling matching homepage design
+✅ **Floating Labels (Stripe/Figma style)** - Labels animate up when focused/filled
+  - Created reusable FloatingInput component
+  - Updated labels: "Name", "Email", "Password", "Confirm password"
+  - Example placeholders: "Alex Smith", "you@example.com"
+  - Smooth 200ms animations with accessibility support
 
 ---
 

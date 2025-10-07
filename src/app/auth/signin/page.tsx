@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthContext } from '@/components/providers/auth-provider'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { FloatingInput } from '@/components/ui/floating-input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Film, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
 
@@ -58,43 +58,30 @@ export default function SignInPage() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                  required
-                />
-              </div>
-            </div>
+            <FloatingInput
+              id="email"
+              type="email"
+              label="Email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              leftIcon={<Mail className="h-4 w-4" />}
+              required
+            />
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                  required
-                />
+            <FloatingInput
+              id="password"
+              type={showPassword ? "text" : "password"}
+              label="Password"
+              placeholder=""
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              leftIcon={<Lock className="h-4 w-4" />}
+              rightAction={
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -103,8 +90,9 @@ export default function SignInPage() {
                     <Eye className="h-4 w-4" />
                   )}
                 </button>
-              </div>
-            </div>
+              }
+              required
+            />
 
             <Button
               type="submit"
