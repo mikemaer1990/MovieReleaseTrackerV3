@@ -116,9 +116,11 @@ export function MobileMenu({
                   href="/search"
                   className={cn(
                     "flex items-center space-x-3 py-3 px-4 rounded-lg",
-                    "text-foreground hover:bg-accent hover:text-accent-foreground",
                     "transition-colors duration-200 ease-in-out",
-                    "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                    pathname === '/search'
+                      ? "bg-primary/10 text-primary border-l-2 border-primary"
+                      : "text-foreground hover:bg-accent hover:text-accent-foreground"
                   )}
                   onClick={onClose}
                 >
@@ -130,9 +132,11 @@ export function MobileMenu({
                   href="/dashboard"
                   className={cn(
                     "flex items-center space-x-3 py-3 px-4 rounded-lg",
-                    "text-foreground hover:bg-accent hover:text-accent-foreground",
                     "transition-colors duration-200 ease-in-out",
-                    "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                    pathname === '/dashboard'
+                      ? "bg-primary/10 text-primary border-l-2 border-primary"
+                      : "text-foreground hover:bg-accent hover:text-accent-foreground"
                   )}
                   onClick={onClose}
                 >
@@ -144,9 +148,11 @@ export function MobileMenu({
                   href="/upcoming"
                   className={cn(
                     "flex items-center space-x-3 py-3 px-4 rounded-lg",
-                    "text-foreground hover:bg-accent hover:text-accent-foreground",
                     "transition-colors duration-200 ease-in-out",
-                    "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                    pathname === '/upcoming'
+                      ? "bg-primary/10 text-primary border-l-2 border-primary"
+                      : "text-foreground hover:bg-accent hover:text-accent-foreground"
                   )}
                   onClick={onClose}
                 >
