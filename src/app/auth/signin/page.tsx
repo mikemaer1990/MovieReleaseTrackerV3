@@ -15,9 +15,18 @@ export default function SignInPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [emailTouched, setEmailTouched] = useState(false)
+  const [rememberMe, setRememberMe] = useState(true) // Default to true
 
   const { signIn } = useAuthContext()
   const router = useRouter()
+
+  // Email validation
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  }
+
+  const showEmailError = emailTouched && email.length > 0 && !isValidEmail(email)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,6 +34,11 @@ export default function SignInPage() {
     setLoading(true)
 
     try {
+      // Store remember me preference
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('rememberMe', String(rememberMe))
+      }
+
       await signIn(email, password)
       router.push('/') // Redirect to home after successful sign in
     } catch (err) {
@@ -58,16 +72,25 @@ export default function SignInPage() {
               </div>
             )}
 
-            <FloatingInput
-              id="email"
-              type="email"
-              label="Email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              leftIcon={<Mail className="h-4 w-4" />}
-              required
-            />
+            <div className="space-y-1">
+              <FloatingInput
+                id="email"
+                type="email"
+                label="Email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => setEmailTouched(true)}
+                leftIcon={<Mail className="h-4 w-4" />}
+                autoFocus
+                required
+              />
+              {showEmailError && (
+                <p className="text-xs text-red-600 dark:text-red-400 px-1">
+                  Please enter a valid email address
+                </p>
+              )}
+            </div>
 
             <FloatingInput
               id="password"
@@ -81,8 +104,9 @@ export default function SignInPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer -m-2 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
                   tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -93,6 +117,22 @@ export default function SignInPage() {
               }
               required
             />
+
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
+              <label
+                htmlFor="rememberMe"
+                className="text-sm text-muted-foreground hover:text-foreground cursor-pointer select-none transition-colors"
+              >
+                Remember me for 30 days
+              </label>
+            </div>
 
             <Button
               type="submit"

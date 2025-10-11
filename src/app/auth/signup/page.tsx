@@ -18,8 +18,51 @@ export default function SignUpPage() {
   const [success, setSuccess] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [emailTouched, setEmailTouched] = useState(false)
 
   const { signUp } = useAuthContext()
+
+  // Email validation
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  }
+
+  const showEmailError = emailTouched && email.length > 0 && !isValidEmail(email)
+
+  // Password strength calculation
+  const calculatePasswordStrength = (password: string) => {
+    let strength = 0
+    const checks = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[^A-Za-z0-9]/.test(password),
+    }
+
+    if (checks.length) strength += 20
+    if (checks.uppercase) strength += 20
+    if (checks.lowercase) strength += 20
+    if (checks.number) strength += 20
+    if (checks.special) strength += 20
+
+    return { strength, checks }
+  }
+
+  const passwordStrength = calculatePasswordStrength(password)
+  const getStrengthColor = (strength: number) => {
+    if (strength <= 40) return 'bg-red-500'
+    if (strength <= 60) return 'bg-orange-500'
+    if (strength <= 80) return 'bg-yellow-500'
+    return 'bg-green-500'
+  }
+  const getStrengthText = (strength: number) => {
+    if (strength === 0) return ''
+    if (strength <= 40) return 'Weak'
+    if (strength <= 60) return 'Fair'
+    if (strength <= 80) return 'Good'
+    return 'Strong'
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -120,19 +163,28 @@ export default function SignUpPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   leftIcon={<User className="h-4 w-4" />}
+                  autoFocus
                   required
                 />
 
-                <FloatingInput
-                  id="email"
-                  type="email"
-                  label="Email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  leftIcon={<Mail className="h-4 w-4" />}
-                  required
-                />
+                <div className="space-y-1">
+                  <FloatingInput
+                    id="email"
+                    type="email"
+                    label="Email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={() => setEmailTouched(true)}
+                    leftIcon={<Mail className="h-4 w-4" />}
+                    required
+                  />
+                  {showEmailError && (
+                    <p className="text-xs text-red-600 dark:text-red-400 px-1">
+                      Please enter a valid email address
+                    </p>
+                  )}
+                </div>
 
                 <div className="space-y-2">
                   <FloatingInput
@@ -147,8 +199,9 @@ export default function SignUpPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                        className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer -m-2 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
                         tabIndex={-1}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
                       >
                         {showPassword ? (
                           <EyeOff className="h-4 w-4" />
@@ -159,9 +212,44 @@ export default function SignUpPage() {
                     }
                     required
                   />
-                  <p className="text-xs text-muted-foreground">
-                    At least 6 characters
-                  </p>
+
+                  {/* Password Strength Indicator */}
+                  {password.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-300 ${getStrengthColor(passwordStrength.strength)}`}
+                            style={{ width: `${passwordStrength.strength}%` }}
+                          />
+                        </div>
+                        {passwordStrength.strength > 0 && (
+                          <span className="text-xs font-medium text-muted-foreground">
+                            {getStrengthText(passwordStrength.strength)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs space-y-1">
+                        <p className={passwordStrength.checks.length ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}>
+                          {passwordStrength.checks.length ? '✓' : '○'} At least 8 characters
+                        </p>
+                        <div className="flex gap-4">
+                          <p className={passwordStrength.checks.uppercase ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}>
+                            {passwordStrength.checks.uppercase ? '✓' : '○'} Uppercase
+                          </p>
+                          <p className={passwordStrength.checks.lowercase ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}>
+                            {passwordStrength.checks.lowercase ? '✓' : '○'} Lowercase
+                          </p>
+                          <p className={passwordStrength.checks.number ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}>
+                            {passwordStrength.checks.number ? '✓' : '○'} Number
+                          </p>
+                          <p className={passwordStrength.checks.special ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}>
+                            {passwordStrength.checks.special ? '✓' : '○'} Special
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <FloatingInput
@@ -176,8 +264,9 @@ export default function SignUpPage() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                      className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer -m-2 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
                       tabIndex={-1}
+                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-4 w-4" />
