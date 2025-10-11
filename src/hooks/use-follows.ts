@@ -18,6 +18,15 @@ export interface FollowRecord {
     overview: string | null
     genres?: Record<string, unknown> | { id: number; name: string }[] | null
     popularity?: number | null
+    release_dates?: Array<{
+      id: string
+      movie_id: number
+      country: string
+      release_type: number
+      release_date: string
+      certification: string | null
+      created_at: string
+    }>
   }
 }
 

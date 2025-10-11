@@ -1,7 +1,34 @@
 import { supabase, createSupabaseAdmin } from '@/lib/supabase'
-import { TMDBMovieDetails, UnifiedReleaseDates } from '@/types/movie'
+import { TMDBMovieDetails, UnifiedReleaseDates, ReleaseDate } from '@/types/movie'
 
 export class MovieService {
+  // Convert database release_dates array to UnifiedReleaseDates
+  static buildUnifiedDatesFromDB(releaseDates: ReleaseDate[] | undefined): UnifiedReleaseDates {
+    if (!releaseDates || releaseDates.length === 0) {
+      return {
+        usTheatrical: null,
+        streaming: null,
+        primary: null,
+        limited: null,
+        digital: null,
+      }
+    }
+
+    const usReleases = releaseDates.filter(rd => rd.country === 'US')
+
+    const theatrical = usReleases.find(rd => rd.releaseType === 3)?.releaseDate || null
+    const limited = usReleases.find(rd => rd.releaseType === 2)?.releaseDate || null
+    const streaming = usReleases.find(rd => rd.releaseType === 4)?.releaseDate || null
+    const digital = usReleases.find(rd => rd.releaseType === 4)?.releaseDate || null
+
+    return {
+      usTheatrical: theatrical,
+      streaming: streaming,
+      primary: theatrical || limited || null,
+      limited: limited,
+      digital: digital,
+    }
+  }
   // Store movie in database (server-side only)
   static async storeMovie(movieData: TMDBMovieDetails, releaseDates: UnifiedReleaseDates) {
     const supabaseAdmin = createSupabaseAdmin()

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Film, Calendar, Star, Search } from 'lucide-react'
 import Link from 'next/link'
+import { MovieService } from '@/lib/services/movie-service'
 type FollowType = 'THEATRICAL' | 'STREAMING' | 'BOTH'
 
 interface GroupedMovie {
@@ -247,6 +248,18 @@ export default function Dashboard() {
                 original_title: groupedMovie.movies.title,
               }
 
+              // Build unified dates from database release_dates
+              const dbReleaseDates = groupedMovie.movies.release_dates?.map(rd => ({
+                id: rd.id,
+                movieId: rd.movie_id,
+                country: rd.country,
+                releaseType: rd.release_type,
+                releaseDate: rd.release_date,
+                certification: rd.certification,
+                createdAt: new Date(rd.created_at)
+              }))
+              const unifiedDates = MovieService.buildUnifiedDatesFromDB(dbReleaseDates)
+
               return (
                 <MovieCard
                   key={groupedMovie.movies.id}
@@ -255,13 +268,7 @@ export default function Dashboard() {
                   onUnfollow={handleUnfollow}
                   followTypes={groupedMovie.followTypes}
                   loading={loading}
-                  unifiedDates={{
-                    usTheatrical: groupedMovie.movies.release_date,
-                    streaming: null,
-                    primary: groupedMovie.movies.release_date,
-                    limited: null,
-                    digital: null,
-                  }}
+                  unifiedDates={unifiedDates}
                   className="ring-2 ring-primary/20 bg-primary/5"
                 />
               )

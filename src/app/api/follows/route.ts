@@ -147,7 +147,10 @@ export async function GET(request: NextRequest) {
       .from('follows')
       .select(`
         *,
-        movies (*)
+        movies (
+          *,
+          release_dates (*)
+        )
       `)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
