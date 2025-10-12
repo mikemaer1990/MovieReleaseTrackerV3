@@ -212,7 +212,7 @@ export default function Design2({
                 </div>
               )}
 
-              {movie.status && (
+              {movie.status && movie.status !== 'Released' && (
                 <div>
                   <div className="text-xs text-zinc-500 mb-1">Status</div>
                   <Badge variant="outline" className="border-zinc-700 text-zinc-300">

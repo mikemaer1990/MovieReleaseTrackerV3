@@ -18,12 +18,8 @@ import { Card } from '@/components/ui/card'
 import { Palette, X } from 'lucide-react'
 
 // Import designs
+import Design1 from './designs/design-1'
 import Design2 from './designs/design-2'
-import Design3 from './designs/design-3'
-import Design4 from './designs/design-4'
-import Design5 from './designs/design-5'
-import Design6 from './designs/design-6'
-import Design7 from './designs/design-7'
 
 interface MovieDetailsSwitcherProps {
   movie: TMDBEnhancedMovieDetails & { unifiedDates: UnifiedReleaseDates }
@@ -31,12 +27,8 @@ interface MovieDetailsSwitcherProps {
 }
 
 const DESIGNS = [
-  { id: '1', name: 'Rotten Tomatoes Enhanced', description: 'Improved layout, sticky actions, better mobile', component: Design7 },
+  { id: '1', name: 'Rotten Tomatoes Enhanced', description: 'Improved layout, sticky actions, better mobile', component: Design1 },
   { id: '2', name: 'Classic IMDb Dark', description: 'Information-dense, professional, dark theme', component: Design2 },
-  { id: '3', name: 'Netflix Inspired', description: 'Video-first, cinematic, autoplay trailer', component: Design3 },
-  { id: '4', name: 'Split Screen Editorial', description: 'Magazine-style, poster + content split', component: Design4 },
-  { id: '5', name: 'Muted Gold Glassmorphism', description: 'Frosted glass, subtle bronze/amber tones', component: Design5 },
-  { id: '6', name: 'Grid Mosaic', description: 'Pinterest-style cards, modern bento grid', component: Design6 },
 ]
 
 export default function MovieDetailsSwitcher({ movie, initialDesign }: MovieDetailsSwitcherProps) {

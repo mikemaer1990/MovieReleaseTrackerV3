@@ -64,5 +64,53 @@ export default async function MovieDetailsPage({ params, searchParams }: Props) 
     notFound()
   }
 
-  return <MovieDetailsSwitcher movie={movie} initialDesign={design} />
+  // Generate structured data for SEO
+  const director = movie.credits?.crew.find(c => c.job === 'Director')
+  const mainCast = movie.credits?.cast.slice(0, 10) || []
+
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Movie',
+    name: movie.title,
+    description: movie.overview,
+    image: movie.poster_path
+      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+      : undefined,
+    datePublished: movie.release_date || undefined,
+    genre: movie.genres.map(g => g.name),
+    ...(director && {
+      director: {
+        '@type': 'Person',
+        name: director.name,
+      },
+    }),
+    ...(mainCast.length > 0 && {
+      actor: mainCast.map(actor => ({
+        '@type': 'Person',
+        name: actor.name,
+      })),
+    }),
+    ...(movie.vote_average > 0 && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: movie.vote_average.toFixed(1),
+        ratingCount: movie.vote_count,
+        bestRating: '10',
+        worstRating: '0',
+      },
+    }),
+    ...(movie.runtime > 0 && {
+      duration: `PT${movie.runtime}M`,
+    }),
+  }
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <MovieDetailsSwitcher movie={movie} initialDesign={design} />
+    </>
+  )
 }
