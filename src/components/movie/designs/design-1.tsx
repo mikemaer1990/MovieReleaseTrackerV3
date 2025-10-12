@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType } from '@/types/movie'
 import { Button } from '@/components/ui/button'
@@ -59,6 +59,28 @@ export default function Design1({
   const director = movie.credits?.crew.find(c => c.job === 'Director')
   const mainCast = movie.credits?.cast.slice(0, 12) || []
   const usWatchProviders = movie['watch/providers']?.results?.US
+
+  // Combine and filter similar + recommendations for quality
+  const qualityMovies = useMemo(() => {
+    const allMovies = [
+      ...(movie.similar?.results || []),
+      ...(movie.recommendations?.results || [])
+    ]
+
+    // Remove duplicates, filter quality, sort by rating
+    const uniqueMovies = allMovies
+      .filter((m, idx, arr) => arr.findIndex(x => x.id === m.id) === idx) // Remove duplicates
+      .filter(m =>
+        !m.adult && // No adult content
+        m.poster_path && // Must have poster
+        m.vote_average >= 5 && // Minimum quality rating
+        m.vote_count >= 50 // Minimum vote count
+      )
+      .sort((a, b) => b.vote_average - a.vote_average) // Best first
+      .slice(0, 12) // Top 12
+
+    return uniqueMovies
+  }, [movie.similar, movie.recommendations])
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -545,11 +567,11 @@ export default function Design1({
         )}
 
         {/* Similar Movies */}
-        {movie.similar && movie.similar.results.length > 0 && (
+        {qualityMovies.length >= 3 && (
           <section aria-labelledby="similar-movies-heading">
             <h2 id="similar-movies-heading" className="text-2xl font-bold mb-4">Similar Movies</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {movie.similar.results.slice(0, 12).map(similarMovie => (
+              {qualityMovies.map(similarMovie => (
                 <MovieCard
                   key={similarMovie.id}
                   movie={similarMovie}
