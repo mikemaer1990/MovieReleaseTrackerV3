@@ -76,6 +76,59 @@ export default function MovieDetailsSwitcher({ movie, initialDesign }: MovieDeta
     }
   }
 
+  const handleToggleFollow = async (_movieId: number, followType: FollowType) => {
+    const isFollowingBoth = followTypes.includes('BOTH')
+    const isFollowingTheatrical = followTypes.includes('THEATRICAL') || isFollowingBoth
+    const isFollowingStreaming = followTypes.includes('STREAMING') || isFollowingBoth
+
+    try {
+      // If toggling theatrical
+      if (followType === 'THEATRICAL') {
+        if (isFollowingTheatrical) {
+          // Unfollowing theatrical
+          if (isFollowingBoth) {
+            // Split BOTH into just STREAMING
+            await unfollowMovie(movie.id, 'BOTH')
+            await followMovie(movie.id, 'STREAMING')
+            setFollowTypes(['STREAMING'])
+          } else {
+            // Just unfollow theatrical
+            await unfollowMovie(movie.id, 'THEATRICAL')
+            setFollowTypes(prev => prev.filter(t => t !== 'THEATRICAL'))
+          }
+        } else {
+          // Following theatrical
+          await followMovie(movie.id, 'THEATRICAL')
+          setFollowTypes(prev => [...prev, 'THEATRICAL'])
+        }
+      }
+      // If toggling streaming
+      else if (followType === 'STREAMING') {
+        if (isFollowingStreaming) {
+          // Unfollowing streaming
+          if (isFollowingBoth) {
+            // Split BOTH into just THEATRICAL
+            await unfollowMovie(movie.id, 'BOTH')
+            await followMovie(movie.id, 'THEATRICAL')
+            setFollowTypes(['THEATRICAL'])
+          } else {
+            // Just unfollow streaming
+            await unfollowMovie(movie.id, 'STREAMING')
+            setFollowTypes(prev => prev.filter(t => t !== 'STREAMING'))
+          }
+        } else {
+          // Following streaming
+          await followMovie(movie.id, 'STREAMING')
+          setFollowTypes(prev => [...prev, 'STREAMING'])
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling follow:', error)
+      // Reload follow status on error
+      loadFollowStatus()
+    }
+  }
+
   const switchDesign = (designId: string) => {
     const params = new URLSearchParams(searchParams.toString())
     if (designId === '1') {
@@ -144,6 +197,7 @@ export default function MovieDetailsSwitcher({ movie, initialDesign }: MovieDeta
         followLoading={followLoading}
         onFollow={handleFollow}
         onUnfollow={handleUnfollow}
+        onToggleFollow={handleToggleFollow}
       />
     </div>
   )

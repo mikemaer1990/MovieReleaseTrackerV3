@@ -28,6 +28,7 @@ interface Design2Props {
   followLoading: boolean
   onFollow: (movieId: number, followType: FollowType) => void
   onUnfollow: (movieId: number, followType: FollowType) => void
+  onToggleFollow: (movieId: number, followType: FollowType) => void
 }
 
 export default function Design2({
@@ -36,7 +37,8 @@ export default function Design2({
   followTypes,
   followLoading,
   onFollow,
-  onUnfollow
+  onUnfollow,
+  onToggleFollow
 }: Design2Props) {
   const [currentTrailerIndex, setCurrentTrailerIndex] = useState(0)
 
@@ -146,10 +148,7 @@ export default function Design2({
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => isFollowingTheatrical
-                    ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'THEATRICAL')
-                    : onFollow(movie.id, 'THEATRICAL')
-                  }
+                  onClick={() => onToggleFollow(movie.id, 'THEATRICAL')}
                   disabled={followLoading}
                   className={cn(
                     "w-full justify-start gap-2 border-zinc-700",
@@ -166,10 +165,7 @@ export default function Design2({
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => isFollowingStreaming
-                    ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'STREAMING')
-                    : onFollow(movie.id, 'STREAMING')
-                  }
+                  onClick={() => onToggleFollow(movie.id, 'STREAMING')}
                   disabled={followLoading}
                   className={cn(
                     "w-full justify-start gap-2 border-zinc-700",

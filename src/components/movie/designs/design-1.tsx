@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType } from '@/types/movie'
 import { Button } from '@/components/ui/button'
@@ -29,6 +29,7 @@ interface Design1Props {
   followLoading: boolean
   onFollow: (movieId: number, followType: FollowType) => void
   onUnfollow: (movieId: number, followType: FollowType) => void
+  onToggleFollow: (movieId: number, followType: FollowType) => void
 }
 
 export default function Design1({
@@ -37,9 +38,11 @@ export default function Design1({
   followTypes,
   followLoading,
   onFollow,
-  onUnfollow
+  onUnfollow,
+  onToggleFollow
 }: Design1Props) {
   const [currentTrailerIndex, setCurrentTrailerIndex] = useState(0)
+  const [isOverviewExpanded, setIsOverviewExpanded] = useState(false)
 
   const isFollowingBoth = followTypes.includes('BOTH')
   const isFollowingTheatrical = followTypes.includes('THEATRICAL') || isFollowingBoth
@@ -59,6 +62,14 @@ export default function Design1({
   const director = movie.credits?.crew.find(c => c.job === 'Director')
   const mainCast = movie.credits?.cast.slice(0, 12) || []
   const usWatchProviders = movie['watch/providers']?.results?.US
+
+  // Overview truncation logic
+  const OVERVIEW_CHAR_LIMIT = 250
+  const overviewText = movie.overview || 'No overview available.'
+  const isOverviewLong = overviewText.length > OVERVIEW_CHAR_LIMIT
+  const displayedOverview = isOverviewLong && !isOverviewExpanded
+    ? overviewText.slice(0, OVERVIEW_CHAR_LIMIT) + '...'
+    : overviewText
 
   // Combine and filter similar + recommendations for quality
   const qualityMovies = useMemo(() => {
@@ -103,7 +114,7 @@ export default function Design1({
       <div className="relative w-full">
         {/* Backdrop Image - Reduced height on mobile */}
         {backdropUrl && (
-          <div className="relative w-full h-[400px] md:h-[600px]">
+          <div className="relative w-full h-[280px] sm:h-[400px] md:h-[600px]">
             <Image
               src={backdropUrl}
               alt={movie.title}
@@ -112,7 +123,7 @@ export default function Design1({
               className="object-cover"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/20" />
           </div>
         )}
 
@@ -214,10 +225,19 @@ export default function Design1({
                 <CardHeader className="pb-3">
                   <CardTitle className="text-xl">Overview</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0">
+                <CardContent className="pt-0 space-y-3">
                   <p className="text-base text-muted-foreground leading-relaxed">
-                    {movie.overview || 'No overview available.'}
+                    {displayedOverview}
                   </p>
+                  {isOverviewLong && (
+                    <button
+                      onClick={() => setIsOverviewExpanded(!isOverviewExpanded)}
+                      className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                      aria-expanded={isOverviewExpanded}
+                    >
+                      {isOverviewExpanded ? 'Show less' : 'Read more'}
+                    </button>
+                  )}
                 </CardContent>
               </Card>
 
@@ -251,63 +271,114 @@ export default function Design1({
                 </CardContent>
               </Card>
 
-              {/* Follow Buttons - Inline in Hero */}
+              {/* Follow Buttons - Compact on mobile, full on desktop */}
               {isAuthenticated && (
-                <div className="flex flex-wrap gap-3" role="group" aria-label="Movie follow options">
-                  <Button
-                    size="lg"
-                    onClick={() => isFollowingTheatrical
-                      ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'THEATRICAL')
-                      : onFollow(movie.id, 'THEATRICAL')
-                    }
-                    disabled={followLoading}
-                    aria-label={isFollowingTheatrical ? `Unfollow ${movie.title} theatrical release` : `Follow ${movie.title} theatrical release`}
-                    className={cn(
-                      "gap-2 transition-all duration-200",
-                      isFollowingTheatrical
-                        ? "bg-gradient-to-r from-yellow-500 to-amber-500 text-black hover:from-yellow-400 hover:to-amber-400 hover:shadow-lg hover:shadow-yellow-500/50"
-                        : "border-yellow-500/40 bg-yellow-500/5 hover:border-yellow-500/60 hover:bg-yellow-500/10 hover:scale-105"
-                    )}
-                    variant={isFollowingTheatrical ? "default" : "outline"}
-                  >
-                    {isFollowingTheatrical ? <Check className="h-4 w-4" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
-                    <Film className="h-4 w-4" aria-hidden="true" />
-                    <span>Theatrical</span>
-                  </Button>
+                <div role="group" aria-label="Movie follow options">
+                  {/* Mobile: Compact Icon Buttons */}
+                  <div className="flex flex-col gap-2 md:hidden">
+                    <div className="flex gap-2">
+                      <Button
+                        size="default"
+                        onClick={() => onToggleFollow(movie.id, 'THEATRICAL')}
+                        disabled={followLoading}
+                        aria-label={isFollowingTheatrical ? `Unfollow ${movie.title} theatrical release` : `Follow ${movie.title} theatrical release`}
+                        className={cn(
+                          "flex-1 gap-2 transition-all duration-200",
+                          isFollowingTheatrical
+                            ? "bg-gradient-to-r from-yellow-500 to-amber-500 text-black hover:from-yellow-400 hover:to-amber-400"
+                            : "border-yellow-500/40 bg-yellow-500/5 hover:border-yellow-500/60 hover:bg-yellow-500/10"
+                        )}
+                        variant={isFollowingTheatrical ? "default" : "outline"}
+                      >
+                        {isFollowingTheatrical ? <Check className="h-4 w-4" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
+                        <Film className="h-4 w-4" aria-hidden="true" />
+                        <span className="text-sm">Theater</span>
+                      </Button>
 
-                  <Button
-                    size="lg"
-                    onClick={() => isFollowingStreaming
-                      ? onUnfollow(movie.id, isFollowingBoth ? 'BOTH' : 'STREAMING')
-                      : onFollow(movie.id, 'STREAMING')
-                    }
-                    disabled={followLoading}
-                    aria-label={isFollowingStreaming ? `Unfollow ${movie.title} streaming release` : `Follow ${movie.title} streaming release`}
-                    className={cn(
-                      "gap-2 transition-all duration-200",
-                      isFollowingStreaming
-                        ? "bg-gradient-to-r from-amber-600 to-yellow-600 text-black hover:from-amber-500 hover:to-yellow-500 hover:shadow-lg hover:shadow-amber-500/50"
-                        : "border-amber-500/40 bg-amber-500/5 hover:border-amber-500/60 hover:bg-amber-500/10 hover:scale-105"
-                    )}
-                    variant={isFollowingStreaming ? "default" : "outline"}
-                  >
-                    {isFollowingStreaming ? <Check className="h-4 w-4" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
-                    <Tv className="h-4 w-4" aria-hidden="true" />
-                    <span>Streaming</span>
-                  </Button>
+                      <Button
+                        size="default"
+                        onClick={() => onToggleFollow(movie.id, 'STREAMING')}
+                        disabled={followLoading}
+                        aria-label={isFollowingStreaming ? `Unfollow ${movie.title} streaming release` : `Follow ${movie.title} streaming release`}
+                        className={cn(
+                          "flex-1 gap-2 transition-all duration-200",
+                          isFollowingStreaming
+                            ? "bg-gradient-to-r from-amber-600 to-yellow-600 text-black hover:from-amber-500 hover:to-yellow-500"
+                            : "border-amber-500/40 bg-amber-500/5 hover:border-amber-500/60 hover:bg-amber-500/10"
+                        )}
+                        variant={isFollowingStreaming ? "default" : "outline"}
+                      >
+                        {isFollowingStreaming ? <Check className="h-4 w-4" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
+                        <Tv className="h-4 w-4" aria-hidden="true" />
+                        <span className="text-sm">Stream</span>
+                      </Button>
+                    </div>
 
-                  {!isFollowingBoth && !isFollowingTheatrical && !isFollowingStreaming && (
+                    {!isFollowingBoth && !isFollowingTheatrical && !isFollowingStreaming && (
+                      <Button
+                        size="default"
+                        onClick={() => onFollow(movie.id, 'BOTH')}
+                        disabled={followLoading}
+                        aria-label={`Follow ${movie.title} for both theatrical and streaming releases`}
+                        className="w-full gap-2 transition-all duration-200 bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500"
+                      >
+                        <Plus className="h-4 w-4" aria-hidden="true" />
+                        <span className="text-sm">Both</span>
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Desktop: Full Buttons */}
+                  <div className="hidden md:flex flex-wrap gap-3">
                     <Button
                       size="lg"
-                      onClick={() => onFollow(movie.id, 'BOTH')}
+                      onClick={() => onToggleFollow(movie.id, 'THEATRICAL')}
                       disabled={followLoading}
-                      aria-label={`Follow ${movie.title} for both theatrical and streaming releases`}
-                      className="gap-2 transition-all duration-200 bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500 hover:shadow-lg hover:shadow-yellow-500/50"
+                      aria-label={isFollowingTheatrical ? `Unfollow ${movie.title} theatrical release` : `Follow ${movie.title} theatrical release`}
+                      className={cn(
+                        "gap-2 transition-all duration-200",
+                        isFollowingTheatrical
+                          ? "bg-gradient-to-r from-yellow-500 to-amber-500 text-black hover:from-yellow-400 hover:to-amber-400 hover:shadow-lg hover:shadow-yellow-500/50"
+                          : "border-yellow-500/40 bg-yellow-500/5 hover:border-yellow-500/60 hover:bg-yellow-500/10 hover:scale-105"
+                      )}
+                      variant={isFollowingTheatrical ? "default" : "outline"}
                     >
-                      <Plus className="h-4 w-4" aria-hidden="true" />
-                      <span>Follow Both</span>
+                      {isFollowingTheatrical ? <Check className="h-4 w-4" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
+                      <Film className="h-4 w-4" aria-hidden="true" />
+                      <span>Theatrical</span>
                     </Button>
-                  )}
+
+                    <Button
+                      size="lg"
+                      onClick={() => onToggleFollow(movie.id, 'STREAMING')}
+                      disabled={followLoading}
+                      aria-label={isFollowingStreaming ? `Unfollow ${movie.title} streaming release` : `Follow ${movie.title} streaming release`}
+                      className={cn(
+                        "gap-2 transition-all duration-200",
+                        isFollowingStreaming
+                          ? "bg-gradient-to-r from-amber-600 to-yellow-600 text-black hover:from-amber-500 hover:to-yellow-500 hover:shadow-lg hover:shadow-amber-500/50"
+                          : "border-amber-500/40 bg-amber-500/5 hover:border-amber-500/60 hover:bg-amber-500/10 hover:scale-105"
+                      )}
+                      variant={isFollowingStreaming ? "default" : "outline"}
+                    >
+                      {isFollowingStreaming ? <Check className="h-4 w-4" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
+                      <Tv className="h-4 w-4" aria-hidden="true" />
+                      <span>Streaming</span>
+                    </Button>
+
+                    {!isFollowingBoth && !isFollowingTheatrical && !isFollowingStreaming && (
+                      <Button
+                        size="lg"
+                        onClick={() => onFollow(movie.id, 'BOTH')}
+                        disabled={followLoading}
+                        aria-label={`Follow ${movie.title} for both theatrical and streaming releases`}
+                        className="gap-2 transition-all duration-200 bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500 hover:shadow-lg hover:shadow-yellow-500/50"
+                      >
+                        <Plus className="h-4 w-4" aria-hidden="true" />
+                        <span>Follow Both</span>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -316,10 +387,10 @@ export default function Design1({
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-12 space-y-12">
+      <div className="container mx-auto px-4 py-8 md:py-12 space-y-10 md:space-y-12">
         {/* Key Details Grid - More Compact */}
         <section aria-labelledby="movie-details-heading">
-          <h2 id="movie-details-heading" className="text-2xl font-bold mb-4">Details</h2>
+          <h2 id="movie-details-heading" className="text-xl md:text-2xl font-bold mb-4 md:mb-5">Details</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {movie.budget > 0 && (
               <Card className="hover:shadow-md transition-shadow">
@@ -377,81 +448,100 @@ export default function Design1({
           </div>
         </section>
 
-        {/* Trailers - Compact */}
+        {/* Trailers - Enhanced for mobile */}
         {trailers.length > 0 && (
           <section aria-labelledby="trailers-heading">
-            <h2 id="trailers-heading" className="text-2xl font-bold mb-4">Trailers</h2>
-            <div className="space-y-3">
-              <div className="relative aspect-video rounded-lg overflow-hidden bg-black">
+            <h2 id="trailers-heading" className="text-xl md:text-2xl font-bold mb-4 md:mb-5">Trailers</h2>
+            <div className="space-y-4">
+              <div className="relative aspect-video rounded-lg overflow-hidden bg-black shadow-lg">
                 <iframe
-                  src={`https://www.youtube.com/embed/${trailers[currentTrailerIndex].key}`}
+                  src={`https://www.youtube-nocookie.com/embed/${trailers[currentTrailerIndex].key}?modestbranding=1&rel=0&playsinline=1&controls=1&iv_load_policy=3`}
                   title={`${movie.title} - ${trailers[currentTrailerIndex].name}`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   className="absolute inset-0 w-full h-full"
+                  sandbox="allow-scripts allow-same-origin allow-presentation"
                 />
               </div>
 
-              {trailers.length > 1 && (
-                <div className="flex items-center justify-between" role="navigation" aria-label="Trailer navigation">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentTrailerIndex(prev => Math.max(0, prev - 1))}
-                    disabled={currentTrailerIndex === 0}
-                    aria-label="Previous trailer"
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-1" aria-hidden="true" />
-                    Previous
-                  </Button>
-                  <span className="text-sm text-muted-foreground" aria-live="polite" aria-atomic="true">
-                    {currentTrailerIndex + 1} of {trailers.length}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentTrailerIndex(prev => Math.min(trailers.length - 1, prev + 1))}
-                    disabled={currentTrailerIndex === trailers.length - 1}
-                    aria-label="Next trailer"
-                  >
-                    Next
-                    <ChevronRight className="h-4 w-4 ml-1" aria-hidden="true" />
-                  </Button>
-                </div>
-              )}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                {trailers.length > 1 && (
+                  <div className="flex items-center gap-2 w-full sm:w-auto" role="navigation" aria-label="Trailer navigation">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentTrailerIndex(prev => Math.max(0, prev - 1))}
+                      disabled={currentTrailerIndex === 0}
+                      aria-label="Previous trailer"
+                      className="flex-1 sm:flex-none"
+                    >
+                      <ChevronLeft className="h-4 w-4 sm:mr-1" aria-hidden="true" />
+                      <span className="hidden sm:inline">Previous</span>
+                    </Button>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap px-2" aria-live="polite" aria-atomic="true">
+                      {currentTrailerIndex + 1} of {trailers.length}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentTrailerIndex(prev => Math.min(trailers.length - 1, prev + 1))}
+                      disabled={currentTrailerIndex === trailers.length - 1}
+                      aria-label="Next trailer"
+                      className="flex-1 sm:flex-none"
+                    >
+                      <span className="hidden sm:inline">Next</span>
+                      <ChevronRight className="h-4 w-4 sm:ml-1" aria-hidden="true" />
+                    </Button>
+                  </div>
+                )}
+
+                <a
+                  href={`https://www.youtube.com/watch?v=${trailers[currentTrailerIndex].key}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5 w-full sm:w-auto justify-center"
+                >
+                  <span>Watch on YouTube</span>
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                  </svg>
+                </a>
+              </div>
             </div>
           </section>
         )}
 
-        {/* Cast - Denser Grid */}
+        {/* Cast - Enhanced Mobile Scroll */}
         {mainCast.length > 0 && (
           <section aria-labelledby="cast-heading">
-            <h2 id="cast-heading" className="text-2xl font-bold mb-4">Cast</h2>
+            <h2 id="cast-heading" className="text-xl md:text-2xl font-bold mb-4 md:mb-5">Cast</h2>
 
             {/* Mobile: Horizontal Scroll */}
-            <div className="lg:hidden overflow-x-auto">
-              <div className="flex gap-3 pb-4">
+            <div className="lg:hidden overflow-x-auto -mx-4 px-4 scroll-smooth">
+              <div className="flex gap-4 pb-4">
                 {mainCast.map(actor => (
-                  <div key={actor.id} className="flex-shrink-0 w-32">
-                    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+                  <div key={actor.id} className="flex-shrink-0 w-36">
+                    <Card className="overflow-hidden">
                       <div className="relative aspect-[2/3] bg-muted">
                         {actor.profile_path ? (
                           <Image
                             src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
                             alt={`${actor.name} as ${actor.character}`}
                             fill
-                            sizes="128px"
+                            sizes="144px"
                             className="object-cover"
                           />
                         ) : (
                           <div className="flex items-center justify-center h-full" aria-label="No photo available">
-                            <Film className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
+                            <Film className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
                           </div>
                         )}
                       </div>
-                      <CardContent className="p-2">
-                        <p className="font-semibold text-xs truncate">{actor.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{actor.character}</p>
+                      <CardContent className="p-3">
+                        <p className="font-semibold text-sm truncate">{actor.name}</p>
+                        <p className="text-xs text-muted-foreground truncate min-h-[16px]">
+                          {actor.character || '\u00A0'}
+                        </p>
                       </CardContent>
                     </Card>
                   </div>
@@ -480,7 +570,9 @@ export default function Design1({
                   </div>
                   <CardContent className="p-2">
                     <p className="font-semibold text-xs truncate">{actor.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{actor.character}</p>
+                    <p className="text-xs text-muted-foreground truncate min-h-[16px]">
+                      {actor.character || '\u00A0'}
+                    </p>
                   </CardContent>
                 </Card>
               ))}
@@ -491,7 +583,7 @@ export default function Design1({
         {/* Where to Watch */}
         {usWatchProviders && (usWatchProviders.flatrate?.length || usWatchProviders.rent?.length || usWatchProviders.buy?.length) && (
           <section aria-labelledby="watch-providers-heading">
-            <h2 id="watch-providers-heading" className="text-2xl font-bold mb-4">Where to Watch</h2>
+            <h2 id="watch-providers-heading" className="text-xl md:text-2xl font-bold mb-4 md:mb-5">Where to Watch</h2>
             <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-4">
                 <div className="space-y-6">
@@ -569,7 +661,7 @@ export default function Design1({
         {/* Similar Movies */}
         {qualityMovies.length >= 3 && (
           <section aria-labelledby="similar-movies-heading">
-            <h2 id="similar-movies-heading" className="text-2xl font-bold mb-4">Similar Movies</h2>
+            <h2 id="similar-movies-heading" className="text-xl md:text-2xl font-bold mb-4 md:mb-5">Similar Movies</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {qualityMovies.map(similarMovie => (
                 <MovieCard
