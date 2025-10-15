@@ -16,7 +16,9 @@ import {
   ChevronRight,
   RefreshCw,
   BarChart3,
-  Clock
+  Clock,
+  Tv,
+  Check
 } from 'lucide-react'
 
 type FollowType = 'THEATRICAL' | 'STREAMING' | 'BOTH'
@@ -292,30 +294,35 @@ export default function UpcomingMovies() {
 
       {/* Level 2 Follow Stats */}
       {isAuthenticated && followStats.totalFollowed > 0 && (
-        <Card className="mb-8">
+        <Card className="mb-8 border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 shadow-[0_0_15px_rgba(243,217,107,0.1)]">
           <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <BarChart3 className="h-5 w-5 text-primary" />
+            <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4">
+              <div className="flex items-center gap-2">
+                <div className="bg-primary/10 rounded-full p-2">
+                  <BarChart3 className="h-5 w-5 text-primary drop-shadow-[0_0_8px_rgba(243,217,107,0.3)]" />
+                </div>
                 <span className="font-medium">
-                  Following {followStats.totalFollowed} upcoming movie{followStats.totalFollowed !== 1 ? 's' : ''}
+                  Following <span className="font-bold text-lg text-primary">{followStats.totalFollowed}</span> upcoming movie{followStats.totalFollowed !== 1 ? 's' : ''}
                 </span>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
                 {followStats.theatricalCount > 0 && (
-                  <Badge variant="secondary">
-                    {followStats.theatricalCount} Theater
+                  <Badge className="bg-primary/15 border-primary/40 text-primary flex items-center gap-1.5">
+                    <Film className="h-3 w-3" />
+                    <span className="font-bold">{followStats.theatricalCount}</span> Theater
                   </Badge>
                 )}
                 {followStats.streamingCount > 0 && (
-                  <Badge variant="secondary">
-                    {followStats.streamingCount} Streaming
+                  <Badge className="bg-primary/20 border-primary/50 text-primary flex items-center gap-1.5">
+                    <Tv className="h-3 w-3" />
+                    <span className="font-bold">{followStats.streamingCount}</span> Streaming
                   </Badge>
                 )}
                 {followStats.bothCount > 0 && (
-                  <Badge variant="secondary">
-                    {followStats.bothCount} Both
+                  <Badge className="bg-primary/25 border-primary/60 text-primary shadow-[0_0_8px_rgba(243,217,107,0.2)] flex items-center gap-1.5">
+                    <Check className="h-3 w-3" />
+                    <span className="font-bold">{followStats.bothCount}</span> Both
                   </Badge>
                 )}
               </div>
@@ -325,14 +332,15 @@ export default function UpcomingMovies() {
       )}
 
       {/* Sort Controls */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-2">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <span className="text-sm font-medium text-muted-foreground">Sort by:</span>
-          <div className="flex space-x-1">
+          <div className="grid grid-cols-2 sm:flex gap-2">
             <Button
               variant={sortBy === 'popularity' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handleSortChange('popularity')}
+              className="min-h-[44px]"
             >
               <TrendingUp className="h-4 w-4 mr-2" />
               Most Popular
@@ -341,6 +349,7 @@ export default function UpcomingMovies() {
               variant={sortBy === 'release_date' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handleSortChange('release_date')}
+              className="min-h-[44px]"
             >
               <Clock className="h-4 w-4 mr-2" />
               Soonest Release
@@ -350,7 +359,7 @@ export default function UpcomingMovies() {
 
         {/* Page Info */}
         {pagination && (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground text-center md:text-right">
             Page {pagination.currentPage} of {pagination.totalPages}
           </div>
         )}

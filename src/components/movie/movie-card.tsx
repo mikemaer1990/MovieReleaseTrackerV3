@@ -118,12 +118,12 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
 
       </CardContent>
 
-      <CardFooter className="p-3 pt-0 space-y-2 mt-auto">
-        <div className="w-full space-y-2">
+      <CardFooter className="p-3 pt-0 space-y-3 md:space-y-2 mt-auto">
+        <div className="w-full space-y-3 md:space-y-2">
           <Button
             variant="outline"
             size="sm"
-            className="w-full"
+            className="w-full min-h-[44px] md:min-h-auto py-3 md:py-1.5"
             asChild
           >
             <Link href={`/movie/${movie.id}`}>
@@ -134,15 +134,15 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
           {onFollow && onUnfollow && (
             <div className="space-y-2">
               {/* Always show individual toggle buttons */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3 md:gap-2">
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={handleTheatricalToggle}
                   disabled={loading}
-                  className={`flex items-center gap-1.5 transition-colors duration-200 ${
-                    isFollowingTheatrical 
-                      ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-black border-yellow-500 hover:from-yellow-400 hover:to-amber-400 hover:shadow-sm' 
+                  className={`flex items-center gap-1.5 transition-colors duration-200 min-h-[44px] md:min-h-auto py-3 md:py-1.5 ${
+                    isFollowingTheatrical
+                      ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-black border-yellow-500 hover:from-yellow-400 hover:to-amber-400 hover:shadow-sm'
                       : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:border-yellow-500 hover:text-yellow-400'
                   }`}
                 >
@@ -163,9 +163,9 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
                   variant="ghost"
                   onClick={handleStreamingToggle}
                   disabled={loading}
-                  className={`flex items-center gap-1.5 transition-colors duration-200 ${
-                    isFollowingStreaming 
-                      ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-black border-amber-600 hover:from-amber-500 hover:to-yellow-500 hover:shadow-sm' 
+                  className={`flex items-center gap-1.5 transition-colors duration-200 min-h-[44px] md:min-h-auto py-3 md:py-1.5 ${
+                    isFollowingStreaming
+                      ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-black border-amber-600 hover:from-amber-500 hover:to-yellow-500 hover:shadow-sm'
                       : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:border-yellow-600 hover:text-yellow-500'
                   }`}
                 >
@@ -190,13 +190,13 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
                   variant="ghost"
                   onClick={() => onFollow(movie.id, 'BOTH')}
                   disabled={loading}
-                  className="w-full flex items-center gap-1.5 transition-colors duration-200 bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 text-black border-yellow-500 hover:from-yellow-400 hover:via-amber-400 hover:to-yellow-500 hover:shadow-md"
+                  className="w-full flex items-center gap-1.5 transition-colors duration-200 min-h-[44px] md:min-h-auto py-3 md:py-1.5 bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 text-black border-yellow-500 hover:from-yellow-400 hover:via-amber-400 hover:to-yellow-500 hover:shadow-md"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Follow Both</span>
                 </Button>
               )}
-              
+
               {/* Unfollow Both button - only show if completely followed */}
               {isCompletelyFollowed && (
                 <Button
@@ -211,7 +211,7 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
                     }
                   }}
                   disabled={loading}
-                  className="w-full flex items-center gap-1.5 transition-colors duration-200 bg-gradient-to-r from-red-900/30 to-red-800/30 border-red-500 text-red-300 hover:from-red-900/50 hover:to-red-800/50 hover:text-red-200"
+                  className="w-full flex items-center gap-1.5 transition-colors duration-200 min-h-[44px] md:min-h-auto py-3 md:py-1.5 bg-gradient-to-r from-red-900/30 to-red-800/30 border-red-500 text-red-300 hover:from-red-900/50 hover:to-red-800/50 hover:text-red-200"
                 >
                   <span>Unfollow All</span>
                 </Button>
