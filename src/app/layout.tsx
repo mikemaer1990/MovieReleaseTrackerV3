@@ -3,10 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { Header } from "@/components/layout/header";
-import { validateEnv } from "@/lib/env-validation";
-
-// Validate environment variables on server startup
-validateEnv();
 
 const inter = Inter({ subsets: ["latin"] });
 
