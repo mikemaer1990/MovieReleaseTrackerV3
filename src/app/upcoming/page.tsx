@@ -376,7 +376,7 @@ export default function UpcomingMovies() {
       {/* Movies Grid */}
       {!loading && movies.length > 0 && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4 mb-8">
             {movies.map(movie => {
               // Transform to TMDB format
               const tmdbMovie = {
@@ -419,42 +419,74 @@ export default function UpcomingMovies() {
 
           {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (
-            <div className="flex items-center justify-center space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={!pagination.hasPreviousPage}
-              >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                Previous
-              </Button>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-2">
+              {/* Mobile: Compact buttons with page info */}
+              <div className="flex items-center justify-between w-full sm:hidden gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={!pagination.hasPreviousPage}
+                  className="flex-1 max-w-[120px]"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="ml-1">Previous</span>
+                </Button>
 
-              <div className="flex items-center space-x-2">
-                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                  const pageNum = Math.max(1, currentPage - 2) + i
-                  if (pageNum > pagination.totalPages) return null
+                <div className="text-sm text-muted-foreground whitespace-nowrap">
+                  Page {pagination.currentPage} of {pagination.totalPages}
+                </div>
 
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={pageNum === currentPage ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => handlePageChange(pageNum)}
-                    >
-                      {pageNum}
-                    </Button>
-                  )
-                }).filter(Boolean)}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={!pagination.hasNextPage}
+                  className="flex-1 max-w-[120px]"
+                >
+                  <span className="mr-1">Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
               </div>
 
-              <Button
-                variant="outline"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={!pagination.hasNextPage}
-              >
-                Next
-                <ChevronRight className="h-4 w-4 ml-2" />
-              </Button>
+              {/* Desktop: Full pagination with page numbers */}
+              <div className="hidden sm:flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={!pagination.hasPreviousPage}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-2" />
+                  Previous
+                </Button>
+
+                <div className="flex items-center space-x-2">
+                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                    const pageNum = Math.max(1, currentPage - 2) + i
+                    if (pageNum > pagination.totalPages) return null
+
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={pageNum === currentPage ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handlePageChange(pageNum)}
+                      >
+                        {pageNum}
+                      </Button>
+                    )
+                  }).filter(Boolean)}
+                </div>
+
+                <Button
+                  variant="outline"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={!pagination.hasNextPage}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
             </div>
           )}
         </>

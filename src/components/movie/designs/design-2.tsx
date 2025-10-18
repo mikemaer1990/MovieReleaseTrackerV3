@@ -481,7 +481,7 @@ export default function Design2({
             {movie.similar && movie.similar.results.length > 0 && (
               <div>
                 <h2 className="text-xl font-bold mb-4">More Like This</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                   {movie.similar.results.slice(0, 12).map(similarMovie => (
                     <MovieCard
                       key={similarMovie.id}

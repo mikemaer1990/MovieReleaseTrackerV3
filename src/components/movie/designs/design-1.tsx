@@ -662,7 +662,7 @@ export default function Design1({
         {qualityMovies.length >= 3 && (
           <section aria-labelledby="similar-movies-heading">
             <h2 id="similar-movies-heading" className="text-xl md:text-2xl font-bold mb-4 md:mb-5">Similar Movies</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
               {qualityMovies.map(similarMovie => (
                 <MovieCard
                   key={similarMovie.id}

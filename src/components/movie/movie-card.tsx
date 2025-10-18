@@ -71,8 +71,8 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
   }
 
   return (
-    <Card className={cn("overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full", className)}>
-      <div className="relative aspect-[3/4] bg-muted">
+    <Card className={cn("overflow-hidden hover:shadow-lg transition-shadow flex flex-row sm:flex-col h-full", className)}>
+      <div className="relative w-36 flex-shrink-0 sm:w-full sm:aspect-[3/4] bg-muted">
         {posterUrl ? (
           <Image
             src={posterUrl}
@@ -95,35 +95,36 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
         )}
       </div>
 
-      <CardContent className="p-3 flex-grow">
-        <h3 className="font-semibold text-lg mb-2 truncate" title={movie.title}>
-          {movie.title}
-        </h3>
-        
-        {/* Release Dates - Option 1: Stacked Two-Row Layout */}
-        <div className="space-y-1.5 text-sm mb-2">
-          <div className="flex items-center gap-1.5">
-            <Film className="h-4 w-4 text-yellow-500 shrink-0" />
-            <span className="text-foreground font-medium">
-              {formatDateWithFallback(unifiedDates?.usTheatrical || movie.release_date)}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Tv className="h-4 w-4 text-amber-500 shrink-0" />
-            <span className="text-foreground font-medium">
-              {formatDateWithFallback(unifiedDates?.streaming)}
-            </span>
-          </div>
-        </div>
+      <div className="flex flex-col flex-1 min-w-0">
+        <CardContent className="p-2 sm:p-3 flex-grow">
+          <h3 className="font-semibold text-base sm:text-lg mb-1.5 sm:mb-2 truncate" title={movie.title}>
+            {movie.title}
+          </h3>
 
-      </CardContent>
+          {/* Release Dates - Option 1: Stacked Two-Row Layout */}
+          <div className="space-y-1 sm:space-y-1.5 text-sm mb-1.5 sm:mb-2">
+            <div className="flex items-center gap-1.5">
+              <Film className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 shrink-0" />
+              <span className="text-foreground font-medium">
+                {formatDateWithFallback(unifiedDates?.usTheatrical || movie.release_date)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Tv className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500 shrink-0" />
+              <span className="text-foreground font-medium">
+                {formatDateWithFallback(unifiedDates?.streaming)}
+              </span>
+            </div>
+          </div>
 
-      <CardFooter className="p-3 pt-0 space-y-3 md:space-y-2 mt-auto">
-        <div className="w-full space-y-3 md:space-y-2">
+        </CardContent>
+
+        <CardFooter className="p-2 pt-0 sm:p-3 sm:pt-0 space-y-2 mt-auto">
+          <div className="w-full space-y-2">
           <Button
             variant="outline"
             size="sm"
-            className="w-full min-h-[44px] md:min-h-auto py-3 md:py-1.5"
+            className="w-full py-1.5 sm:py-3 md:py-1.5 text-sm"
             asChild
           >
             <Link href={`/movie/${movie.id}`}>
@@ -134,27 +135,29 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
           {onFollow && onUnfollow && (
             <div className="space-y-2">
               {/* Always show individual toggle buttons */}
-              <div className="grid grid-cols-2 gap-3 md:gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={handleTheatricalToggle}
                   disabled={loading}
-                  className={`flex items-center gap-1.5 transition-colors duration-200 min-h-[44px] md:min-h-auto py-3 md:py-1.5 ${
+                  className={`flex items-center gap-1 sm:gap-1.5 transition-colors duration-200 py-1.5 sm:py-3 md:py-1.5 text-sm border ${
                     isFollowingTheatrical
                       ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-black border-yellow-500 hover:from-yellow-400 hover:to-amber-400 hover:shadow-sm'
-                      : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:border-yellow-500 hover:text-yellow-400'
+                      : 'bg-zinc-900 border-yellow-500/60 text-zinc-300 hover:bg-zinc-800 hover:border-yellow-500 hover:text-yellow-400'
                   }`}
                 >
                   {isFollowingTheatrical ? (
                     <>
-                      <Check className="h-4 w-4" />
-                      <span>Theater</span>
+                      <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline sm:inline">Theater</span>
+                      <span className="xs:hidden sm:hidden">🎬</span>
                     </>
                   ) : (
                     <>
-                      <Plus className="h-4 w-4" />
-                      <span>Theater</span>
+                      <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline sm:inline">Theater</span>
+                      <span className="xs:hidden sm:hidden">🎬</span>
                     </>
                   )}
                 </Button>
@@ -163,26 +166,28 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
                   variant="ghost"
                   onClick={handleStreamingToggle}
                   disabled={loading}
-                  className={`flex items-center gap-1.5 transition-colors duration-200 min-h-[44px] md:min-h-auto py-3 md:py-1.5 ${
+                  className={`flex items-center gap-1 sm:gap-1.5 transition-colors duration-200 py-1.5 sm:py-3 md:py-1.5 text-sm border ${
                     isFollowingStreaming
                       ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-black border-amber-600 hover:from-amber-500 hover:to-yellow-500 hover:shadow-sm'
-                      : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:border-yellow-600 hover:text-yellow-500'
+                      : 'bg-zinc-900 border-amber-600/60 text-zinc-300 hover:bg-zinc-800 hover:border-amber-600 hover:text-yellow-500'
                   }`}
                 >
                   {isFollowingStreaming ? (
                     <>
-                      <Check className="h-4 w-4" />
-                      <span>Stream</span>
+                      <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline sm:inline">Stream</span>
+                      <span className="xs:hidden sm:hidden">📺</span>
                     </>
                   ) : (
                     <>
-                      <Plus className="h-4 w-4" />
-                      <span>Stream</span>
+                      <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline sm:inline">Stream</span>
+                      <span className="xs:hidden sm:hidden">📺</span>
                     </>
                   )}
                 </Button>
               </div>
-              
+
               {/* Follow Both button - only show if not completely followed */}
               {!isCompletelyFollowed && (
                 <Button
@@ -190,9 +195,9 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
                   variant="ghost"
                   onClick={() => onFollow(movie.id, 'BOTH')}
                   disabled={loading}
-                  className="w-full flex items-center gap-1.5 transition-colors duration-200 min-h-[44px] md:min-h-auto py-3 md:py-1.5 bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 text-black border-yellow-500 hover:from-yellow-400 hover:via-amber-400 hover:to-yellow-500 hover:shadow-md"
+                  className="w-full flex items-center gap-1 sm:gap-1.5 transition-colors duration-200 py-1.5 sm:py-3 md:py-1.5 text-sm bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 text-black border-yellow-500 hover:from-yellow-400 hover:via-amber-400 hover:to-yellow-500 hover:shadow-md"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span>Follow Both</span>
                 </Button>
               )}
@@ -211,15 +216,16 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
                     }
                   }}
                   disabled={loading}
-                  className="w-full flex items-center gap-1.5 transition-colors duration-200 min-h-[44px] md:min-h-auto py-3 md:py-1.5 bg-gradient-to-r from-red-900/30 to-red-800/30 border-red-500 text-red-300 hover:from-red-900/50 hover:to-red-800/50 hover:text-red-200"
+                  className="w-full flex items-center gap-1 sm:gap-1.5 transition-colors duration-200 py-1.5 sm:py-3 md:py-1.5 text-sm bg-gradient-to-r from-red-900/30 to-red-800/30 border-red-500 text-red-300 hover:from-red-900/50 hover:to-red-800/50 hover:text-red-200"
                 >
                   <span>Unfollow All</span>
                 </Button>
               )}
             </div>
           )}
-        </div>
-      </CardFooter>
+          </div>
+        </CardFooter>
+      </div>
     </Card>
   )
 }

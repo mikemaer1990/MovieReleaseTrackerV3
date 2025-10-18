@@ -255,9 +255,9 @@ export default function SearchPage() {
             </div>
           ) : results.length > 0 ? (
             <>
-              <div className="flex flex-wrap justify-center gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                 {results.map((movie) => (
-                  <div key={movie.id} className="w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.667rem)] md:w-[calc(25%-0.75rem)] lg:w-[calc(20%-0.8rem)] xl:w-[calc(16.666%-0.833rem)]">
+                  <div key={movie.id}>
                     <MovieCard
                       movie={movie}
                       onFollow={handleFollow}
@@ -300,9 +300,9 @@ export default function SearchPage() {
             </div>
           ) : (
             <>
-              <div className="flex flex-wrap justify-center gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                 {discoverMovies.map((movie) => (
-                  <div key={movie.id} className="w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.667rem)] md:w-[calc(25%-0.75rem)] lg:w-[calc(20%-0.8rem)] xl:w-[calc(16.666%-0.833rem)]">
+                  <div key={movie.id}>
                     <MovieCard
                       movie={movie}
                       onFollow={handleFollow}

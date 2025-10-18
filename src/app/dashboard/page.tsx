@@ -204,7 +204,7 @@ export default function Dashboard() {
         <h2 className="text-2xl font-semibold mb-6">Your Followed Movies</h2>
         
         {loadingFollows ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
             {[...Array(8)].map((_, i) => (
               <Card key={i} className="animate-pulse flex flex-col h-full">
                 <div className="aspect-[3/4] bg-muted rounded-t-lg" />
@@ -229,7 +229,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
             {groupedMovies.map((groupedMovie) => {
               // Transform database movie to TMDB format
               const tmdbMovie = {
