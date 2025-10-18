@@ -83,6 +83,16 @@ export function validateEnv(): void {
     return
   }
 
+  // Skip validation during build phase
+  // During build, we don't need runtime-only env vars like DATABASE_URL
+  const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build' ||
+                       process.env.NEXT_PHASE === 'phase-development-build'
+
+  if (isBuildPhase) {
+    console.log('⏭️  Skipping environment validation during build phase')
+    return
+  }
+
   const missing: string[] = []
   const warnings: string[] = []
 
