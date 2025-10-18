@@ -4,7 +4,7 @@ import { dailyReleasesService } from '@/lib/services/cron/daily-releases-service
 /**
  * Cron Job: Daily Release Notifications
  *
- * Schedule: Daily at 9:00 AM
+ * Schedule: Daily at 6:00 AM PST (14:00 UTC)
  * Purpose: Notify users when their followed movies are released today (theatrical or streaming)
  *
  * Usage:

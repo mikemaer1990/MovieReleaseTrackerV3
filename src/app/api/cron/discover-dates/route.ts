@@ -4,7 +4,7 @@ import { discoverDatesService } from '@/lib/services/cron/discover-dates-service
 /**
  * Cron Job: Discover Missing Release Dates
  *
- * Schedule: Daily at 3:00 AM (run before daily-releases)
+ * Schedule: Daily at 3:00 AM PST / 11:00 UTC (runs before daily-releases)
  * Purpose: Find missing theatrical/streaming dates for followed movies
  *
  * Usage:
