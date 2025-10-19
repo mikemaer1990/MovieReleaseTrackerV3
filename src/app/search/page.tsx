@@ -1,15 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuthContext } from '@/components/providers/auth-provider'
 import { useRouter } from 'next/navigation'
 import { MovieCard } from '@/components/movie/movie-card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Search, Loader2 } from 'lucide-react'
+import { Search, Loader2, X } from 'lucide-react'
 import { TMDBMovie, TMDBSearchResponse, FollowType, UnifiedReleaseDates } from '@/types/movie'
 import { useFollows } from '@/hooks/use-follows'
+import { useDebounce } from '@/hooks/use-debounce'
 
 interface FollowRecord {
   movies: {
@@ -18,11 +19,13 @@ interface FollowRecord {
   follow_type: FollowType
 }
 
+const MIN_SEARCH_CHARS = 3
+
 export default function SearchPage() {
   const { isAuthenticated } = useAuthContext()
   const router = useRouter()
   const { followMovie, unfollowMovie, getUserFollows, loading: followLoading } = useFollows()
-  
+
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<TMDBMovie[]>([])
   const [discoverMovies, setDiscoverMovies] = useState<TMDBMovie[]>([])
@@ -31,6 +34,13 @@ export default function SearchPage() {
   const [totalPages, setTotalPages] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [followingMovies, setFollowingMovies] = useState<Map<number, FollowType[]>>(new Map())
+  const [error, setError] = useState<string | null>(null)
+
+  // Debounce the search query
+  const debouncedQuery = useDebounce(query, 500)
+
+  // AbortController ref for canceling requests
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -46,6 +56,38 @@ export default function SearchPage() {
       fetchUserFollows()
     }
   }, [isAuthenticated])
+
+  // Live search effect - triggers when debounced query changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      // If query is empty or less than minimum chars, clear results
+      if (debouncedQuery.trim().length === 0) {
+        setResults([])
+        setTotalPages(0)
+        setCurrentPage(1)
+        setError(null)
+        return
+      }
+
+      // Only search if query meets minimum character requirement
+      if (debouncedQuery.trim().length >= MIN_SEARCH_CHARS) {
+        searchMovies(debouncedQuery, 1)
+      }
+    }
+  }, [debouncedQuery, isAuthenticated])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape key clears search
+      if (e.key === 'Escape' && query) {
+        handleClearSearch()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [query])
 
   const fetchDiscoverMovies = async () => {
     try {
@@ -108,31 +150,67 @@ export default function SearchPage() {
       setResults([])
       setTotalPages(0)
       setCurrentPage(1)
+      setError(null)
       return
     }
 
+    // Cancel any in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    // Create new AbortController for this request
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
+
     try {
       setLoading(true)
+      setError(null)
+
       const response = await fetch(
-        `/api/movies/search?q=${encodeURIComponent(searchQuery)}&page=${page}`
+        `/api/movies/search?q=${encodeURIComponent(searchQuery)}&page=${page}`,
+        { signal: abortController.signal }
       )
-      
+
       if (response.ok) {
         const data: TMDBSearchResponse = await response.json()
         setResults(data.results)
         setTotalPages(data.total_pages)
         setCurrentPage(page)
+      } else {
+        setError('Failed to search movies. Please try again.')
       }
     } catch (error) {
+      // Don't set error for aborted requests
+      if (error instanceof Error && error.name === 'AbortError') {
+        return
+      }
       console.error('Error searching movies:', error)
+      setError('An error occurred while searching. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
+  const handleClearSearch = () => {
+    setQuery('')
+    setResults([])
+    setTotalPages(0)
+    setCurrentPage(1)
+    setError(null)
+
+    // Cancel any in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+  }
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    searchMovies(query)
+    // Trigger search immediately on form submit (Enter key)
+    if (query.trim().length >= MIN_SEARCH_CHARS) {
+      searchMovies(query)
+    }
   }
 
   const handleLoadMore = () => {
@@ -223,41 +301,91 @@ export default function SearchPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSearch} className="flex space-x-2">
-            <Input
-              type="text"
-              placeholder="Search for movies..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="flex-1"
-            />
-            <Button type="submit" disabled={loading}>
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Search className="h-4 w-4" />
+          <form onSubmit={handleSearch} className="space-y-3">
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search for movies..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="pr-10"
+                aria-label="Search movies"
+                aria-describedby="search-hint"
+                autoComplete="off"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               )}
-            </Button>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <p id="search-hint" className="text-muted-foreground">
+                {loading ? (
+                  <span className="flex items-center space-x-2">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>Searching...</span>
+                  </span>
+                ) : query.trim().length > 0 && query.trim().length < MIN_SEARCH_CHARS ? (
+                  `Type at least ${MIN_SEARCH_CHARS} characters to search`
+                ) : (
+                  'Start typing to search for movies'
+                )}
+              </p>
+              {query && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                >
+                  Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">Esc</kbd> to clear
+                </button>
+              )}
+            </div>
           </form>
         </CardContent>
       </Card>
 
       {/* Search Results */}
-      {query && (
-        <section>
+      {query && query.trim().length >= MIN_SEARCH_CHARS && (
+        <section aria-live="polite" aria-atomic="true">
           <h2 className="text-2xl font-semibold mb-6">
-            Search Results {results.length > 0 && `(${results.length} found)`}
+            Search Results {results.length > 0 && !loading && `(${results.length} found)`}
           </h2>
-          
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin" />
+
+          {/* Error State */}
+          {error && !loading && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center">
+              <p className="text-destructive font-medium">{error}</p>
+              <Button
+                onClick={() => searchMovies(query)}
+                variant="outline"
+                className="mt-4"
+              >
+                Try Again
+              </Button>
             </div>
-          ) : results.length > 0 ? (
-            <>
+          )}
+
+          {/* Loading State */}
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-12 space-y-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">Searching for movies...</p>
+            </div>
+          )}
+
+          {/* Results */}
+          {!loading && !error && results.length > 0 && (
+            <div className="animate-in fade-in-50 duration-300">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                 {results.map((movie) => (
-                  <div key={movie.id}>
+                  <div key={movie.id} className="animate-in fade-in-50 slide-in-from-bottom-4 duration-300">
                     <MovieCard
                       movie={movie}
                       onFollow={handleFollow}
@@ -277,12 +405,31 @@ export default function SearchPage() {
                   </Button>
                 </div>
               )}
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No movies found for &quot;{query}&quot;</p>
             </div>
           )}
+
+          {/* Empty State */}
+          {!loading && !error && results.length === 0 && (
+            <div className="text-center py-12 animate-in fade-in-50 duration-300">
+              <Search className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+              <p className="text-lg text-muted-foreground mb-2">
+                No movies found for &quot;{query}&quot;
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Try a different search term or browse our discover section below
+              </p>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Minimum Characters Hint */}
+      {query && query.trim().length > 0 && query.trim().length < MIN_SEARCH_CHARS && (
+        <section className="text-center py-12 animate-in fade-in-50 duration-300">
+          <Search className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+          <p className="text-lg text-muted-foreground">
+            Keep typing... (minimum {MIN_SEARCH_CHARS} characters required)
+          </p>
         </section>
       )}
 
