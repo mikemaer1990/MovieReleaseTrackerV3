@@ -388,64 +388,69 @@ export default function Design1({
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8 md:py-12 space-y-10 md:space-y-12">
-        {/* Key Details Grid - More Compact */}
+        {/* Details - Two-Column List */}
         <section aria-labelledby="movie-details-heading">
           <h2 id="movie-details-heading" className="text-xl md:text-2xl font-bold mb-4 md:mb-5">Details</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {movie.budget > 0 && (
-              <Card className="hover:shadow-md transition-shadow">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-                    <DollarSign className="h-3 w-3" />
-                    <span>Budget</span>
+          <Card className="bg-card/80 backdrop-blur">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {/* Budget */}
+                {movie.budget > 0 && (
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 border-b border-border/50 last:border-0 gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <DollarSign className="h-4 w-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">Budget</span>
+                    </div>
+                    <span className="font-bold text-base sm:text-right">{formatCurrency(movie.budget)}</span>
                   </div>
-                  <p className="text-sm font-bold">{formatCurrency(movie.budget)}</p>
-                </CardContent>
-              </Card>
-            )}
+                )}
 
-            {movie.revenue > 0 && (
-              <Card className="hover:shadow-md transition-shadow">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-                    <DollarSign className="h-3 w-3" />
-                    <span>Revenue</span>
+                {/* Revenue */}
+                {movie.revenue > 0 && (
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 border-b border-border/50 last:border-0 gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <DollarSign className="h-4 w-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">Revenue</span>
+                    </div>
+                    <span className="font-bold text-base sm:text-right">{formatCurrency(movie.revenue)}</span>
                   </div>
-                  <p className="text-sm font-bold">{formatCurrency(movie.revenue)}</p>
-                </CardContent>
-              </Card>
-            )}
+                )}
 
-            {movie.original_language && (
-              <Card className="hover:shadow-md transition-shadow">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-                    <Globe className="h-3 w-3" />
-                    <span>Language</span>
+                {/* Language */}
+                {movie.original_language && (
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 border-b border-border/50 last:border-0 gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <Globe className="h-4 w-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">Language</span>
+                    </div>
+                    <span className="font-bold text-base uppercase sm:text-right">{movie.original_language}</span>
                   </div>
-                  <p className="text-sm font-bold uppercase">{movie.original_language}</p>
-                </CardContent>
-              </Card>
-            )}
+                )}
 
-            {movie.status && movie.status !== 'Released' && (
-              <Card className="hover:shadow-md transition-shadow">
-                <CardContent className="p-3">
-                  <div className="text-xs text-muted-foreground mb-1">Status</div>
-                  <p className="text-sm font-bold">{movie.status}</p>
-                </CardContent>
-              </Card>
-            )}
+                {/* Status */}
+                {movie.status && (
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 border-b border-border/50 last:border-0 gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <Film className="h-4 w-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">Status</span>
+                    </div>
+                    <span className="font-bold text-base sm:text-right">{movie.status}</span>
+                  </div>
+                )}
 
-            {movie.production_companies.length > 0 && (
-              <Card className="col-span-2 md:col-span-4 hover:shadow-md transition-shadow">
-                <CardContent className="p-3">
-                  <div className="text-xs text-muted-foreground mb-1">Production</div>
-                  <p className="text-sm">{movie.production_companies.map(c => c.name).join(', ')}</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                {/* Production */}
+                {movie.production_companies.length > 0 && (
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between py-3 border-b border-border/50 last:border-0 gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <Film className="h-4 w-4 text-primary flex-shrink-0" />
+                      <span className="text-sm text-muted-foreground">Production</span>
+                    </div>
+                    <span className="font-medium text-base sm:text-right">{movie.production_companies.map(c => c.name).join(', ')}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </section>
 
         {/* Trailers - Enhanced for mobile */}
