@@ -4,9 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuthContext } from '@/components/providers/auth-provider'
 import { useRouter } from 'next/navigation'
 import { MovieCard } from '@/components/movie/movie-card'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Search, Loader2, X } from 'lucide-react'
 import { TMDBMovie, TMDBSearchResponse, FollowType, UnifiedReleaseDates } from '@/types/movie'
 import { useFollows } from '@/hooks/use-follows'
@@ -30,6 +28,7 @@ export default function SearchPage() {
   const [results, setResults] = useState<TMDBMovie[]>([])
   const [discoverMovies, setDiscoverMovies] = useState<TMDBMovie[]>([])
   const [loading, setLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [discoverLoading, setDiscoverLoading] = useState(true)
   const [totalPages, setTotalPages] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
@@ -164,7 +163,12 @@ export default function SearchPage() {
     abortControllerRef.current = abortController
 
     try {
-      setLoading(true)
+      // Use different loading states for initial search vs load more
+      if (page > 1) {
+        setLoadingMore(true)
+      } else {
+        setLoading(true)
+      }
       setError(null)
 
       const response = await fetch(
@@ -174,7 +178,13 @@ export default function SearchPage() {
 
       if (response.ok) {
         const data: TMDBSearchResponse = await response.json()
-        setResults(data.results)
+        // If loading more (page > 1), append to existing results
+        // Otherwise, replace results (new search)
+        if (page > 1) {
+          setResults(prev => [...prev, ...data.results])
+        } else {
+          setResults(data.results)
+        }
         setTotalPages(data.total_pages)
         setCurrentPage(page)
       } else {
@@ -189,6 +199,7 @@ export default function SearchPage() {
       setError('An error occurred while searching. Please try again.')
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
   }
 
@@ -285,30 +296,27 @@ export default function SearchPage() {
 
   return (
     <div className="space-y-8">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-primary">Discover Movies</h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Search for movies you want to follow and get notified when they&apos;re released
-        </p>
-      </div>
+      {/* Hero Search Section */}
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div className="text-center space-y-3">
+          <h1 className="text-5xl font-bold text-primary">Discover Movies</h1>
+          <p className="text-lg text-muted-foreground">
+            Search for movies and get notified when they&apos;re released
+          </p>
+        </div>
 
-      {/* Search Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Search className="h-5 w-5" />
-            <span>Search Movies</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSearch} className="space-y-3">
+        {/* Hero Search Input */}
+        <form onSubmit={handleSearch} className="space-y-4">
+          <div className="relative group">
+            <div className="absolute inset-0 bg-primary/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
             <div className="relative">
-              <Input
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+              <input
                 type="text"
                 placeholder="Search for movies..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="pr-10"
+                className="w-full h-14 pl-12 pr-12 bg-muted border-0 rounded-xl text-lg placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-200"
                 aria-label="Search movies"
                 aria-describedby="search-hint"
                 autoComplete="off"
@@ -317,39 +325,36 @@ export default function SearchPage() {
                 <button
                   type="button"
                   onClick={handleClearSearch}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                   aria-label="Clear search"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </button>
               )}
             </div>
-            <div className="flex items-center justify-between text-sm">
-              <p id="search-hint" className="text-muted-foreground">
-                {loading ? (
-                  <span className="flex items-center space-x-2">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    <span>Searching...</span>
-                  </span>
-                ) : query.trim().length > 0 && query.trim().length < MIN_SEARCH_CHARS ? (
-                  `Type at least ${MIN_SEARCH_CHARS} characters to search`
-                ) : (
-                  'Start typing to search for movies'
-                )}
-              </p>
-              {query && (
-                <button
-                  type="button"
-                  onClick={handleClearSearch}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                >
+          </div>
+
+          {/* Status Hint */}
+          <div className="flex items-center justify-center text-sm min-h-[20px]">
+            <p id="search-hint" className="text-muted-foreground text-center">
+              {loading ? (
+                <span className="flex items-center space-x-2">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span>Searching...</span>
+                </span>
+              ) : query.trim().length > 0 && query.trim().length < MIN_SEARCH_CHARS ? (
+                `Type at least ${MIN_SEARCH_CHARS} characters to search`
+              ) : query ? (
+                <span className="text-xs">
                   Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">Esc</kbd> to clear
-                </button>
+                </span>
+              ) : (
+                'Start typing to search for movies'
               )}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            </p>
+          </div>
+        </form>
+      </div>
 
       {/* Search Results */}
       {query && query.trim().length >= MIN_SEARCH_CHARS && (
@@ -384,32 +389,43 @@ export default function SearchPage() {
           {!loading && !error && results.length > 0 && (
             <div className="animate-in fade-in-50 duration-300">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-                {results.map((movie) => (
-                  <div key={movie.id} className="animate-in fade-in-50 slide-in-from-bottom-4 duration-300">
-                    <MovieCard
-                      movie={movie}
-                      onFollow={handleFollow}
-                      onUnfollow={handleUnfollow}
-                      followTypes={followingMovies.get(movie.id) || []}
-                      loading={followLoading}
-                      unifiedDates={(movie as TMDBMovie & { unifiedDates?: UnifiedReleaseDates }).unifiedDates}
-                    />
-                  </div>
-                ))}
+                {results.map((movie) => {
+                  const isFollowed = followingMovies.has(movie.id)
+                  return (
+                    <div key={movie.id} className="animate-in fade-in-50 slide-in-from-bottom-4 duration-300">
+                      <MovieCard
+                        movie={movie}
+                        onFollow={handleFollow}
+                        onUnfollow={handleUnfollow}
+                        followTypes={followingMovies.get(movie.id) || []}
+                        loading={followLoading}
+                        unifiedDates={(movie as TMDBMovie & { unifiedDates?: UnifiedReleaseDates }).unifiedDates}
+                        className={isFollowed ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
+                      />
+                    </div>
+                  )
+                })}
               </div>
 
               {currentPage < totalPages && (
                 <div className="text-center mt-8">
-                  <Button onClick={handleLoadMore} variant="outline">
-                    Load More Results
+                  <Button onClick={handleLoadMore} variant="outline" disabled={loadingMore}>
+                    {loadingMore ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Loading More...
+                      </>
+                    ) : (
+                      'Load More Results'
+                    )}
                   </Button>
                 </div>
               )}
             </div>
           )}
 
-          {/* Empty State */}
-          {!loading && !error && results.length === 0 && (
+          {/* Empty State - Only show after search completes */}
+          {!loading && !error && results.length === 0 && query === debouncedQuery && (
             <div className="text-center py-12 animate-in fade-in-50 duration-300">
               <Search className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
               <p className="text-lg text-muted-foreground mb-2">
@@ -418,6 +434,14 @@ export default function SearchPage() {
               <p className="text-sm text-muted-foreground">
                 Try a different search term or browse our discover section below
               </p>
+            </div>
+          )}
+
+          {/* Debounce Loading State - Show while typing but search hasn't started */}
+          {!loading && !error && results.length === 0 && query !== debouncedQuery && query.length >= MIN_SEARCH_CHARS && (
+            <div className="flex flex-col items-center justify-center py-12 space-y-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">Preparing search...</p>
             </div>
           )}
         </section>
@@ -448,18 +472,22 @@ export default function SearchPage() {
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-                {discoverMovies.map((movie) => (
-                  <div key={movie.id}>
-                    <MovieCard
-                      movie={movie}
-                      onFollow={handleFollow}
-                      onUnfollow={handleUnfollow}
-                      followTypes={followingMovies.get(movie.id) || []}
-                      loading={followLoading}
-                      unifiedDates={(movie as TMDBMovie & { unifiedDates?: UnifiedReleaseDates }).unifiedDates}
-                    />
-                  </div>
-                ))}
+                {discoverMovies.map((movie) => {
+                  const isFollowed = followingMovies.has(movie.id)
+                  return (
+                    <div key={movie.id}>
+                      <MovieCard
+                        movie={movie}
+                        onFollow={handleFollow}
+                        onUnfollow={handleUnfollow}
+                        followTypes={followingMovies.get(movie.id) || []}
+                        loading={followLoading}
+                        unifiedDates={(movie as TMDBMovie & { unifiedDates?: UnifiedReleaseDates }).unifiedDates}
+                        className={isFollowed ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
+                      />
+                    </div>
+                  )
+                })}
               </div>
             </>
           )}
