@@ -2,12 +2,13 @@
 
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuthContext } from '@/components/providers/auth-provider'
 import { Button } from '@/components/ui/button'
 import { HamburgerButton } from '@/components/ui/hamburger-button'
 import { MobileMenu } from '@/components/ui/mobile-menu'
-import { Film, Search, LogOut } from 'lucide-react'
+import { Search, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function Header() {
@@ -34,8 +35,14 @@ export function Header() {
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Logo */}
             <div className="flex items-center min-w-0">
-              <Link href="/" className="flex items-center gap-2.5 font-bold text-primary hover:text-primary/80 transition-colors group">
-                <Film className="h-6 w-6 flex-shrink-0 group-hover:scale-110 transition-transform" />
+              <Link href="/" className="flex items-center gap-3 font-bold text-primary hover:text-primary/80 transition-colors group">
+                <Image
+                  src="/logo.png"
+                  alt="Movie Release Tracker Logo"
+                  width={48}
+                  height={48}
+                  className="flex-shrink-0 group-hover:scale-105 transition-transform"
+                />
                 <span className="text-lg sm:text-xl hidden sm:inline truncate">Movie Release Tracker</span>
                 <span className="text-lg sm:text-xl sm:hidden">MRT</span>
               </Link>

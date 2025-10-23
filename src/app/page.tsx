@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Film, Search, Calendar, Bell, UserPlus, LogIn, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function Home() {
   const { user, isAuthenticated, loading } = useAuthContext()
