@@ -74,7 +74,7 @@ export default function Dashboard() {
       // Get US theatrical release date from release_dates if available
       const getReleaseDate = (movie: GroupedMovie) => {
         const usTheatrical = movie.movies.release_dates?.find(
-          rd => rd.country === 'US' && rd.release_type === 'THEATRICAL'
+          rd => rd.country === 'US' && rd.release_type === 3 // 3 = Theatrical release
         )
         return usTheatrical?.release_date || movie.movies.release_date
       }
