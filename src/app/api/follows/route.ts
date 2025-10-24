@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       // Fetch movie details from TMDB
       const movieDetails = await tmdbService.getMovieDetails(movieId)
       const releaseDates = tmdbService.getUnifiedReleaseDates(movieDetails.release_dates)
-      
+
       // Store movie in database
       await MovieService.storeMovie(movieDetails, releaseDates)
     }
