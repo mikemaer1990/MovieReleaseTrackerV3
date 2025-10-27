@@ -67,7 +67,29 @@ export default function Dashboard() {
       }
     })
 
-    return Array.from(movieMap.values())
+    // Convert to array and sort by release date (soonest first)
+    const moviesArray = Array.from(movieMap.values())
+
+    return moviesArray.sort((a, b) => {
+      // Get US theatrical release date from release_dates if available
+      const getReleaseDate = (movie: GroupedMovie) => {
+        const usTheatrical = movie.movies.release_dates?.find(
+          rd => rd.country === 'US' && rd.release_type === 3 // 3 = Theatrical release
+        )
+        return usTheatrical?.release_date || movie.movies.release_date
+      }
+
+      const dateA = getReleaseDate(a)
+      const dateB = getReleaseDate(b)
+
+      // Handle null/undefined dates (put them at the end)
+      if (!dateA && !dateB) return 0
+      if (!dateA) return 1
+      if (!dateB) return -1
+
+      // Sort by date ascending (soonest first)
+      return new Date(dateA).getTime() - new Date(dateB).getTime()
+    })
   }
 
   useEffect(() => {

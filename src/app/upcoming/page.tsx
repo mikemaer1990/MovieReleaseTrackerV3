@@ -7,7 +7,6 @@ import { supabase } from '@/lib/supabase'
 import { MovieCard } from '@/components/movie/movie-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import {
   Film,
   TrendingUp,
@@ -15,10 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   RefreshCw,
-  BarChart3,
-  Clock,
-  Tv,
-  Check
+  Clock
 } from 'lucide-react'
 
 type FollowType = 'THEATRICAL' | 'STREAMING' | 'BOTH'
@@ -77,13 +73,6 @@ export default function UpcomingMovies() {
   const [pagination, setPagination] = useState<PaginationInfo | null>(null)
   const [sortBy, setSortBy] = useState<SortType>('popularity')
 
-  // Stats for Level 2 integration
-  const [followStats, setFollowStats] = useState({
-    totalFollowed: 0,
-    theatricalCount: 0,
-    streamingCount: 0,
-    bothCount: 0
-  })
 
   // Fetch upcoming movies
   const fetchUpcomingMovies = async (page: number = 1, sort: SortType = 'popularity') => {
@@ -135,30 +124,6 @@ export default function UpcomingMovies() {
     }
   }
 
-  // Calculate follow stats for Level 2 integration
-  const calculateFollowStats = () => {
-    if (!isAuthenticated) return
-
-    const followedMovieIds = new Set(userFollows.map(f => f.movies.id))
-    const followedUpcomingMovies = movies.filter(movie => followedMovieIds.has(movie.id))
-
-    const stats = {
-      totalFollowed: followedUpcomingMovies.length,
-      theatricalCount: 0,
-      streamingCount: 0,
-      bothCount: 0
-    }
-
-    userFollows.forEach(follow => {
-      if (followedMovieIds.has(follow.movies.id)) {
-        if (follow.follow_type === 'THEATRICAL') stats.theatricalCount++
-        else if (follow.follow_type === 'STREAMING') stats.streamingCount++
-        else if (follow.follow_type === 'BOTH') stats.bothCount++
-      }
-    })
-
-    setFollowStats(stats)
-  }
 
   // Handle sort change
   const handleSortChange = (newSort: SortType) => {
@@ -240,10 +205,6 @@ export default function UpcomingMovies() {
     }
   }, [isAuthenticated])
 
-  // Recalculate stats when movies or follows change
-  useEffect(() => {
-    calculateFollowStats()
-  }, [movies, userFollows, isAuthenticated])
 
   // Error state
   if (error && !loading) {
@@ -291,45 +252,6 @@ export default function UpcomingMovies() {
           </Button>
         </div>
       </div>
-
-      {/* Level 2 Follow Stats */}
-      {isAuthenticated && followStats.totalFollowed > 0 && (
-        <Card className="mb-8 border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 shadow-[0_0_15px_rgba(243,217,107,0.1)]">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4">
-              <div className="flex items-center gap-2">
-                <div className="bg-primary/10 rounded-full p-2">
-                  <BarChart3 className="h-5 w-5 text-primary drop-shadow-[0_0_8px_rgba(243,217,107,0.3)]" />
-                </div>
-                <span className="font-medium">
-                  Following <span className="font-bold text-lg text-primary">{followStats.totalFollowed}</span> upcoming movie{followStats.totalFollowed !== 1 ? 's' : ''}
-                </span>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                {followStats.theatricalCount > 0 && (
-                  <Badge className="bg-primary/15 border-primary/40 text-primary flex items-center gap-1.5">
-                    <Film className="h-3 w-3" />
-                    <span className="font-bold">{followStats.theatricalCount}</span> Theater
-                  </Badge>
-                )}
-                {followStats.streamingCount > 0 && (
-                  <Badge className="bg-primary/20 border-primary/50 text-primary flex items-center gap-1.5">
-                    <Tv className="h-3 w-3" />
-                    <span className="font-bold">{followStats.streamingCount}</span> Streaming
-                  </Badge>
-                )}
-                {followStats.bothCount > 0 && (
-                  <Badge className="bg-primary/25 border-primary/60 text-primary shadow-[0_0_8px_rgba(243,217,107,0.2)] flex items-center gap-1.5">
-                    <Check className="h-3 w-3" />
-                    <span className="font-bold">{followStats.bothCount}</span> Both
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Sort Controls */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -410,7 +332,6 @@ export default function UpcomingMovies() {
                     limited: null,
                     digital: null,
                   }}
-                  // Level 2 integration - highlight followed movies
                   className={isMovieFollowed(movie.id) ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
                 />
               )

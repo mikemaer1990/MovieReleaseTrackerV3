@@ -180,25 +180,43 @@ class UpcomingCacheService {
         return runtime === undefined || runtime === null || runtime === 0 || runtime >= 60
       })
 
+      // Filter out movies with past release dates
+      // Exclude if theatrical OR streaming is in the past
+      const upcomingMovies = moviesWithValidRuntime.filter(movie => {
+        const theatrical = movie.unifiedDates?.usTheatrical
+        const streaming = movie.unifiedDates?.streaming
+
+        // Check if theatrical is in the past
+        const theatricalIsPast = theatrical && new Date(theatrical) <= today
+
+        // Check if streaming is in the past
+        const streamingIsPast = streaming && new Date(streaming) <= today
+
+        // Exclude if either date is in the past
+        return !theatricalIsPast && !streamingIsPast
+      })
+
       console.log(`Cache build completed:`, {
         totalFetched: stats.totalFetched,
         validMovies: validMovies.length,
         enrichedMovies: enrichedMovies.length,
         afterRuntimeFilter: moviesWithValidRuntime.length,
+        afterReleaseDateFilter: upcomingMovies.length,
         filteredByRuntime: enrichedMovies.length - moviesWithValidRuntime.length,
+        filteredByPastReleases: moviesWithValidRuntime.length - upcomingMovies.length,
         dateRange: `${startDate} to ${endDate}`
       })
 
       // Create sorted datasets
-      const popularitySorted = [...moviesWithValidRuntime].sort((a, b) => b.popularity - a.popularity)
-      const releaseDateSorted = [...moviesWithValidRuntime].sort((a, b) =>
+      const popularitySorted = [...upcomingMovies].sort((a, b) => b.popularity - a.popularity)
+      const releaseDateSorted = [...upcomingMovies].sort((a, b) =>
         new Date(a.release_date).getTime() - new Date(b.release_date).getTime()
       )
 
       const cacheData: UpcomingCacheData = {
         popularitySorted,
         releaseDateSorted,
-        totalCount: moviesWithValidRuntime.length,
+        totalCount: upcomingMovies.length,
         cacheBuiltAt: new Date().toISOString(),
         dateRangeEnd: sixMonthsCutoff.toISOString()
       }
