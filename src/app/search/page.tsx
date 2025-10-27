@@ -88,7 +88,7 @@ export default function SearchPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [query])
 
-  const fetchDiscoverMovies = async () => {
+  const fetchDiscoverMovies = async (retryCount = 0) => {
     try {
       setDiscoverLoading(true)
       // Fetch upcoming and popular in parallel
@@ -114,11 +114,32 @@ export default function SearchPage() {
         // Combine: upcoming first, then unique popular
         const combinedMovies = [...upcomingMovies, ...uniquePopular]
         setDiscoverMovies(combinedMovies)
+        setDiscoverLoading(false)
+      } else {
+        // If cache is still building or error occurred, retry after delay
+        const maxRetries = 20 // Maximum 20 retries (about 60 seconds total)
+        if (retryCount < maxRetries) {
+          console.log(`Cache not ready, retrying in 3 seconds... (attempt ${retryCount + 1}/${maxRetries})`)
+          setTimeout(() => {
+            fetchDiscoverMovies(retryCount + 1)
+          }, 3000) // Retry every 3 seconds
+        } else {
+          console.error('Failed to load discover movies after maximum retries')
+          setDiscoverLoading(false)
+        }
       }
     } catch (error) {
       console.error('Error fetching discover movies:', error)
-    } finally {
-      setDiscoverLoading(false)
+      // On network error, also retry
+      const maxRetries = 20
+      if (retryCount < maxRetries) {
+        console.log(`Network error, retrying in 3 seconds... (attempt ${retryCount + 1}/${maxRetries})`)
+        setTimeout(() => {
+          fetchDiscoverMovies(retryCount + 1)
+        }, 3000)
+      } else {
+        setDiscoverLoading(false)
+      }
     }
   }
 
