@@ -7,10 +7,6 @@
     {
       "path": "/api/cron/daily-releases",
       "schedule": "0 14 * * *"
-    },
-    {
-      "path": "/api/cron/refresh-cache",
-      "schedule": "0 3 * * *"
     }
   ]
 }

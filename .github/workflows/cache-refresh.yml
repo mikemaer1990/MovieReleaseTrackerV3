@@ -1,0 +1,23 @@
+name: Daily Cache Refresh
+
+on:
+  schedule:
+    # Run daily at 3:00 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  refresh-cache:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Cache Refresh
+        run: |
+          curl -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -f \
+            https://movie-tracker-v2.vercel.app/api/cron/refresh-cache
+
+      - name: Check Result
+        if: failure()
+        run: echo "Cache refresh failed - check application logs"

@@ -6,11 +6,13 @@ This directory contains comprehensive documentation for all scheduled cron jobs 
 
 The application runs **3 automated cron jobs** daily to maintain fresh data and notify users:
 
-| Job | Schedule | Purpose | Documentation |
-|-----|----------|---------|---------------|
-| **Cache Refresh** | 3:00 AM UTC | Rebuild upcoming movies cache | [cache-refresh.md](./cache-refresh.md) |
-| **Date Discovery** | 11:00 AM UTC | Find missing release dates | [notifications.md](./notifications.md#date-discovery) |
-| **Release Notifications** | 2:00 PM UTC | Notify users of releases | [notifications.md](./notifications.md#release-notifications) |
+| Job | Schedule | Platform | Purpose | Documentation |
+|-----|----------|----------|---------|---------------|
+| **Cache Refresh** | 3:00 AM UTC | GitHub Actions | Rebuild upcoming movies cache | [cache-refresh.md](./cache-refresh.md) |
+| **Date Discovery** | 11:00 AM UTC | Vercel Cron | Find missing release dates | [notifications.md](./notifications.md#date-discovery) |
+| **Release Notifications** | 2:00 PM UTC | Vercel Cron | Notify users of releases | [notifications.md](./notifications.md#release-notifications) |
+
+**Note:** Cache refresh uses GitHub Actions instead of Vercel Cron to stay within Vercel's free tier limit (2 cron jobs). See [GitHub Actions setup](../../.github/workflows/README.md) for configuration details.
 
 ## Quick Links
 
