@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
 /**
  * Send email notification when cache refresh fails
  */
-async function sendFailureNotification(error: string, stats?: Record<string, unknown>) {
+async function sendFailureNotification(error: string, stats?: { totalFetched: number; totalPages: number; duplicatesRemoved: number; moviesWithin6Months: number; foundMoviesBeyondCutoff: boolean }) {
   try {
     const adminEmail = process.env.ADMIN_EMAIL || 'mike@moviereleasetracker.online'
 
@@ -126,9 +126,12 @@ async function sendFailureNotification(error: string, stats?: Record<string, unk
       </div>
     `
 
-    await emailService.sendTestEmail(adminEmail) // Using sendTestEmail as base
+    await emailService.sendAdminNotification(
+      adminEmail,
+      '⚠️ Cache Refresh Failed - Movie Release Tracker',
+      htmlContent
+    )
 
-    // Note: You might want to add a proper sendAdminNotification method to EmailService
     console.log(`[Cron] Failure notification sent to ${adminEmail}`)
 
   } catch (emailError) {
