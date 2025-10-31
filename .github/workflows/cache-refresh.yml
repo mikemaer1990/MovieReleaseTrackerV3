@@ -16,7 +16,7 @@ jobs:
           curl -X GET \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -f \
-            https://movie-tracker-v2.vercel.app/api/cron/refresh-cache
+            https://moviereleasetracker.vercel.app/api/cron/refresh-cache
 
       - name: Check Result
         if: failure()
