@@ -158,6 +158,29 @@ class EmailService {
       throw error
     }
   }
+
+  /**
+   * Send admin notification email (for system alerts)
+   */
+  async sendAdminNotification(
+    toEmail: string,
+    subject: string,
+    htmlContent: string
+  ): Promise<void> {
+    const sendSmtpEmail = new SendSmtpEmail()
+    sendSmtpEmail.sender = { name: this.senderName, email: this.senderEmail }
+    sendSmtpEmail.to = [{ email: toEmail }]
+    sendSmtpEmail.subject = subject
+    sendSmtpEmail.htmlContent = htmlContent
+
+    try {
+      await this.apiInstance.sendTransacEmail(sendSmtpEmail)
+      console.log(`[EmailService] Sent admin notification to ${toEmail}`)
+    } catch (error) {
+      console.error(`[EmailService] Failed to send admin notification to ${toEmail}:`, error)
+      throw error
+    }
+  }
 }
 
 // Export singleton instance
