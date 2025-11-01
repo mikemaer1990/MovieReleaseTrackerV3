@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
  */
 async function sendFailureNotification(error: string, stats?: { totalFetched: number; totalPages: number; duplicatesRemoved: number; moviesWithin6Months: number; foundMoviesBeyondCutoff: boolean }) {
   try {
-    const adminEmail = process.env.ADMIN_EMAIL || 'mike@moviereleasetracker.online'
+    const adminEmail = process.env.ADMIN_EMAIL || 'info@moviereleasetracker.com'
 
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

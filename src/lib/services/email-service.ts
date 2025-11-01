@@ -20,7 +20,7 @@ interface MovieWithDates {
 
 class EmailService {
   private apiInstance: TransactionalEmailsApi
-  private senderEmail: string = 'mike@moviereleasetracker.online'
+  private senderEmail: string = 'noreply@moviereleasetracker.com'
   private senderName: string = 'Movie Release Tracker'
 
   constructor() {
