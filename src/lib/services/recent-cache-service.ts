@@ -41,7 +41,7 @@ interface CacheBuildResult {
 
 class RecentCacheService {
   private static readonly CACHE_KEY = 'recent_movies_digital'
-  private static readonly CACHE_TTL = 6 * 60 * 60 // 6 hours in seconds
+  private static readonly CACHE_TTL = 24 * 60 * 60 // 24 hours in seconds
 
   // Default filters
   private static readonly DEFAULT_DAYS_BACK = 90
