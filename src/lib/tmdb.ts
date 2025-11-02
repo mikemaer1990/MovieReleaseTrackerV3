@@ -149,6 +149,44 @@ class TMDBService {
     return this.fetchWithCache<TMDBSearchResponse>(url, cacheKey, CACHE_TTL.medium)
   }
 
+  async getRecentDigitalReleases(params?: {
+    daysBack?: number
+    voteCountMin?: number
+    voteAverageMin?: number
+    page?: number
+  }): Promise<TMDBSearchResponse> {
+    const {
+      daysBack = 60,
+      voteCountMin = 50,
+      voteAverageMin = 6.5,
+      page = 1
+    } = params || {}
+
+    // Calculate date range (last N days)
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - daysBack)
+
+    const formatDate = (date: Date) => date.toISOString().split('T')[0]
+
+    const searchParams = new URLSearchParams({
+      'release_date.gte': formatDate(startDate),
+      'release_date.lte': formatDate(endDate),
+      'with_release_type': '4|5|6', // Digital (4), Physical (5), TV/Streaming (6)
+      'with_original_language': 'en|es|fr|de|ja|ko|it|pt', // Major languages
+      'vote_count.gte': voteCountMin.toString(),
+      'vote_average.gte': voteAverageMin.toString(),
+      'sort_by': 'release_date.desc',
+      'page': page.toString(),
+      'include_adult': 'false',
+    })
+
+    const url = `/discover/movie?${searchParams.toString()}`
+    const cacheKey = `recent_digital:${searchParams.toString()}`
+
+    return this.fetchWithCache<TMDBSearchResponse>(url, cacheKey, CACHE_TTL.medium)
+  }
+
   /**
    * Get unified release dates from TMDB data
    * Implements the same logic from the original project

@@ -8,7 +8,7 @@ import { useAuthContext } from '@/components/providers/auth-provider'
 import { Button } from '@/components/ui/button'
 import { HamburgerButton } from '@/components/ui/hamburger-button'
 import { MobileMenu } from '@/components/ui/mobile-menu'
-import { Search, LogOut } from 'lucide-react'
+import { Search, LogOut, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function Header() {
@@ -67,16 +67,17 @@ export function Header() {
                   )}
                 </Link>
                 <Link
-                  href="/dashboard"
+                  href="/recent"
                   className={cn(
-                    "px-3 py-2 rounded-md text-sm font-medium transition-colors relative",
-                    pathname === '/dashboard'
+                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors relative",
+                    pathname === '/recent'
                       ? "text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   )}
                 >
-                  My Movies
-                  {pathname === '/dashboard' && (
+                  <Sparkles className="h-4 w-4" />
+                  <span>Recent</span>
+                  {pathname === '/recent' && (
                     <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-primary rounded-full" />
                   )}
                 </Link>
@@ -91,6 +92,20 @@ export function Header() {
                 >
                   Upcoming
                   {pathname === '/upcoming' && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-primary rounded-full" />
+                  )}
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className={cn(
+                    "px-3 py-2 rounded-md text-sm font-medium transition-colors relative",
+                    pathname === '/dashboard'
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  )}
+                >
+                  My Movies
+                  {pathname === '/dashboard' && (
                     <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-primary rounded-full" />
                   )}
                 </Link>

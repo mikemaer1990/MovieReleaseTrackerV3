@@ -1,0 +1,23 @@
+name: Recent Movies Cache Refresh
+
+on:
+  schedule:
+    # Run daily at 6:00 AM UTC (3 hours after upcoming movies cache)
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  refresh-recent-cache:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Recent Cache Refresh
+        run: |
+          curl -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -f \
+            https://moviereleasetracker.vercel.app/api/cron/refresh-recent-cache
+
+      - name: Check Result
+        if: failure()
+        run: echo "Recent cache refresh failed - check application logs"

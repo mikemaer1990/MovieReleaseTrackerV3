@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Search, User, LogOut, UserPlus, LogIn, Film } from 'lucide-react'
+import { Search, User, LogOut, UserPlus, LogIn, Film, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface MobileMenuProps {
@@ -129,19 +129,19 @@ export function MobileMenu({
                 </Link>
 
                 <Link
-                  href="/dashboard"
+                  href="/recent"
                   className={cn(
                     "flex items-center space-x-3 py-3 px-4 rounded-lg",
                     "transition-colors duration-200 ease-in-out",
                     "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                    pathname === '/dashboard'
+                    pathname === '/recent'
                       ? "bg-primary/10 text-primary border-l-2 border-primary"
                       : "text-foreground hover:bg-accent hover:text-accent-foreground"
                   )}
                   onClick={onClose}
                 >
-                  <User className="h-5 w-5" />
-                  <span className="text-base font-medium">My Movies</span>
+                  <Sparkles className="h-5 w-5" />
+                  <span className="text-base font-medium">Recent Releases</span>
                 </Link>
 
                 <Link
@@ -158,6 +158,22 @@ export function MobileMenu({
                 >
                   <div className="h-5 w-5 flex items-center justify-center">📅</div>
                   <span className="text-base font-medium">Upcoming Releases</span>
+                </Link>
+
+                <Link
+                  href="/dashboard"
+                  className={cn(
+                    "flex items-center space-x-3 py-3 px-4 rounded-lg",
+                    "transition-colors duration-200 ease-in-out",
+                    "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                    pathname === '/dashboard'
+                      ? "bg-primary/10 text-primary border-l-2 border-primary"
+                      : "text-foreground hover:bg-accent hover:text-accent-foreground"
+                  )}
+                  onClick={onClose}
+                >
+                  <User className="h-5 w-5" />
+                  <span className="text-base font-medium">My Movies</span>
                 </Link>
               </div>
 
