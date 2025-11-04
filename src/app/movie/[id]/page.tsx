@@ -1,8 +1,9 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import MovieDetailsSwitcher from '@/components/movie/movie-details-switcher'
-import { TMDBEnhancedMovieDetails, UnifiedReleaseDates } from '@/types/movie'
+import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, MovieRatings } from '@/types/movie'
 import { tmdbService } from '@/lib/tmdb'
+import { omdbService } from '@/lib/omdb'
 
 type Props = {
   params: Promise<{ id: string }>
@@ -30,6 +31,32 @@ async function getMovieDetails(id: string): Promise<(TMDBEnhancedMovieDetails & 
     console.error('Error fetching movie details:', error)
     return null
   }
+}
+
+async function getMovieRatings(movie: TMDBEnhancedMovieDetails): Promise<MovieRatings> {
+  const ratings: MovieRatings = {}
+
+  // Add TMDB rating
+  if (movie.vote_average > 0) {
+    ratings.tmdb = {
+      score: movie.vote_average,
+      voteCount: movie.vote_count,
+      url: `https://www.themoviedb.org/movie/${movie.id}`,
+    }
+  }
+
+  // Fetch OMDB ratings if we have an IMDb ID
+  if (movie.external_ids?.imdb_id) {
+    try {
+      const omdbRatings = await omdbService.getRatingsByImdbId(movie.external_ids.imdb_id)
+      Object.assign(ratings, omdbRatings)
+    } catch (error) {
+      console.error('Error fetching OMDB ratings:', error)
+      // Continue without OMDB ratings - TMDB rating will still show
+    }
+  }
+
+  return ratings
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -63,6 +90,9 @@ export default async function MovieDetailsPage({ params, searchParams }: Props) 
   if (!movie) {
     notFound()
   }
+
+  // Fetch ratings from multiple sources
+  const ratings = await getMovieRatings(movie)
 
   // Generate structured data for SEO
   const director = movie.credits?.crew.find(c => c.job === 'Director')
@@ -110,7 +140,7 @@ export default async function MovieDetailsPage({ params, searchParams }: Props) 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <MovieDetailsSwitcher movie={movie} initialDesign={design} />
+      <MovieDetailsSwitcher movie={movie} ratings={ratings} initialDesign={design} />
     </>
   )
 }

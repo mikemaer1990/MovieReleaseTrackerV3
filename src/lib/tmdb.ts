@@ -71,7 +71,7 @@ class TMDBService {
 
   async getEnhancedMovieDetails(movieId: number): Promise<TMDBEnhancedMovieDetails> {
     const cacheKey = `${CACHE_KEYS.movieDetails(movieId)}:enhanced`
-    const url = `/movie/${movieId}?append_to_response=credits,videos,images,watch/providers,similar,recommendations,reviews,release_dates`
+    const url = `/movie/${movieId}?append_to_response=credits,videos,images,watch/providers,similar,recommendations,reviews,release_dates,external_ids`
 
     return this.fetchWithCache<TMDBEnhancedMovieDetails>(url, cacheKey, CACHE_TTL.day)
   }

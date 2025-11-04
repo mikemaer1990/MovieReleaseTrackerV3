@@ -2,11 +2,12 @@
 
 import React, { useState, useMemo } from 'react'
 import Image from 'next/image'
-import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType } from '@/types/movie'
+import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType, MovieRatings } from '@/types/movie'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { MovieCard } from '@/components/movie/movie-card'
+import { MovieRatingsDisplay } from '@/components/movie/movie-ratings'
 import {
   Star,
   Clock,
@@ -24,6 +25,7 @@ import { formatDate, cn } from '@/lib/utils'
 
 interface Design1Props {
   movie: TMDBEnhancedMovieDetails & { unifiedDates: UnifiedReleaseDates }
+  ratings: MovieRatings
   isAuthenticated: boolean
   followTypes: FollowType[]
   followLoading: boolean
@@ -34,6 +36,7 @@ interface Design1Props {
 
 export default function Design1({
   movie,
+  ratings,
   isAuthenticated,
   followTypes,
   followLoading,
@@ -219,6 +222,9 @@ export default function Design1({
                   ))}
                 </div>
               </div>
+
+              {/* Ratings from Multiple Sources */}
+              <MovieRatingsDisplay ratings={ratings} className="mb-5" />
 
               {/* Overview */}
               <Card className="bg-card/80 backdrop-blur">

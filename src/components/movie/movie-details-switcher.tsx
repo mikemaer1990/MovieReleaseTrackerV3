@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType } from '@/types/movie'
+import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType, MovieRatings } from '@/types/movie'
 
 interface FollowRecord {
   movies: {
@@ -23,6 +23,7 @@ import Design2 from './designs/design-2'
 
 interface MovieDetailsSwitcherProps {
   movie: TMDBEnhancedMovieDetails & { unifiedDates: UnifiedReleaseDates }
+  ratings: MovieRatings
   initialDesign?: string
 }
 
@@ -31,7 +32,7 @@ const DESIGNS = [
   { id: '2', name: 'Classic IMDb Dark', description: 'Information-dense, professional, dark theme', component: Design2 },
 ]
 
-export default function MovieDetailsSwitcher({ movie, initialDesign }: MovieDetailsSwitcherProps) {
+export default function MovieDetailsSwitcher({ movie, ratings, initialDesign }: MovieDetailsSwitcherProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const currentDesign = searchParams.get('design') || initialDesign || '1'
@@ -192,6 +193,7 @@ export default function MovieDetailsSwitcher({ movie, initialDesign }: MovieDeta
       {/* Render Selected Design */}
       <DesignComponent
         movie={movie}
+        ratings={ratings}
         isAuthenticated={isAuthenticated}
         followTypes={followTypes}
         followLoading={followLoading}

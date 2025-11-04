@@ -1,7 +1,8 @@
-import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType, TMDBCast, TMDBCrew, TMDBVideo } from '@/types/movie'
+import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType, TMDBCast, TMDBCrew, TMDBVideo, MovieRatings } from '@/types/movie'
 
 export interface DesignProps {
   movie: TMDBEnhancedMovieDetails & { unifiedDates: UnifiedReleaseDates }
+  ratings: MovieRatings
   isAuthenticated: boolean
   followTypes: FollowType[]
   followLoading: boolean

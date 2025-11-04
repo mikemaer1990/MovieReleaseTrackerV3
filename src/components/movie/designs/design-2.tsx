@@ -2,10 +2,11 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType } from '@/types/movie'
+import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType, MovieRatings } from '@/types/movie'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { MovieCard } from '@/components/movie/movie-card'
+import { MovieRatingsDisplay } from '@/components/movie/movie-ratings'
 import {
   Star,
   Clock,
@@ -23,6 +24,7 @@ import { formatDate, cn } from '@/lib/utils'
 
 interface Design2Props {
   movie: TMDBEnhancedMovieDetails & { unifiedDates: UnifiedReleaseDates }
+  ratings: MovieRatings
   isAuthenticated: boolean
   followTypes: FollowType[]
   followLoading: boolean
@@ -33,6 +35,7 @@ interface Design2Props {
 
 export default function Design2({
   movie,
+  ratings,
   isAuthenticated,
   followTypes,
   followLoading,
@@ -286,6 +289,9 @@ export default function Design2({
                 {movie.tagline}
               </p>
             )}
+
+            {/* Ratings from Multiple Sources */}
+            <MovieRatingsDisplay ratings={ratings} />
 
             {/* Overview */}
             <div>

@@ -241,6 +241,14 @@ export interface TMDBReviews {
   total_results: number
 }
 
+// TMDB External IDs Types
+export interface TMDBExternalIds {
+  imdb_id: string | null
+  facebook_id: string | null
+  instagram_id: string | null
+  twitter_id: string | null
+}
+
 // Enhanced Movie Details with all append_to_response data
 export interface TMDBEnhancedMovieDetails extends TMDBMovieDetails {
   credits?: TMDBCredits
@@ -250,4 +258,61 @@ export interface TMDBEnhancedMovieDetails extends TMDBMovieDetails {
   similar?: TMDBSearchResponse
   recommendations?: TMDBSearchResponse
   reviews?: TMDBReviews
+  external_ids?: TMDBExternalIds
+}
+
+// OMDB API Types
+export interface OMDBRating {
+  Source: string
+  Value: string
+}
+
+export interface OMDBResponse {
+  Title: string
+  Year: string
+  Rated: string
+  Released: string
+  Runtime: string
+  Genre: string
+  Director: string
+  Writer: string
+  Actors: string
+  Plot: string
+  Language: string
+  Country: string
+  Awards: string
+  Poster: string
+  Ratings: OMDBRating[]
+  Metascore: string
+  imdbRating: string
+  imdbVotes: string
+  imdbID: string
+  Type: string
+  DVD: string
+  BoxOffice: string
+  Production: string
+  Website: string
+  Response: string
+  Error?: string
+}
+
+// Unified Ratings from multiple sources
+export interface MovieRatings {
+  tmdb?: {
+    score: number
+    voteCount: number
+    url: string
+  }
+  imdb?: {
+    score: string
+    url: string
+  }
+  rottenTomatoes?: {
+    score: string
+    url: string | null
+  }
+  metacritic?: {
+    score: string
+    url: string | null
+  }
 }
