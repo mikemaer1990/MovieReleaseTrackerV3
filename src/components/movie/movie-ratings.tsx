@@ -73,7 +73,7 @@ function RatingBadge({ href, logo, score, color, scoreColor }: RatingBadgeProps)
     tmdb: 'border-[#01b4e4]/40 hover:border-[#01b4e4] hover:bg-[#01b4e4]/10',
     imdb: 'border-[#F5C518]/40 hover:border-[#F5C518] hover:bg-[#F5C518]/10',
     rt: 'border-[#FA320A]/40 hover:border-[#FA320A] hover:bg-[#FA320A]/10',
-    metacritic: 'border-gray-600/40 hover:border-gray-600 hover:bg-gray-600/10',
+    metacritic: 'border-[#FFCC33]/40 hover:border-[#FFCC33] hover:bg-[#FFCC33]/10',
   }
 
   return (

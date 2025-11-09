@@ -21,7 +21,7 @@ class OMDBService {
   async getMovieByImdbId(imdbId: string): Promise<OMDBResponse | null> {
     try {
       const apiKey = this.getApiKey()
-      const url = `${OMDB_BASE_URL}?apikey=${apiKey}&i=${imdbId}&plot=short`
+      const url = `${OMDB_BASE_URL}?apikey=${apiKey}&i=${imdbId}&plot=short&tomatoes=true`
 
       const response = await fetch(url)
       if (!response.ok) {
@@ -65,15 +65,10 @@ class OMDBService {
     if (omdbData.Ratings && omdbData.Ratings.length > 0) {
       omdbData.Ratings.forEach((rating) => {
         if (rating.Source === 'Rotten Tomatoes' && rating.Value !== 'N/A') {
-          // Try to construct RT URL from title (basic slug generation)
-          const slug = omdbData.Title
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '_')
-            .replace(/^_|_$/g, '')
-
+          // Use actual RT URL from OMDB tomatoURL field (if available)
           ratings.rottenTomatoes = {
             score: rating.Value,
-            url: `https://www.rottentomatoes.com/m/${slug}`,
+            url: omdbData.tomatoURL && omdbData.tomatoURL !== 'N/A' ? omdbData.tomatoURL : null,
           }
         }
 

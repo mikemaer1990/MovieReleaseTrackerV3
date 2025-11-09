@@ -294,6 +294,18 @@ export interface OMDBResponse {
   Website: string
   Response: string
   Error?: string
+  // Rotten Tomatoes data (available with tomatoes=true parameter)
+  tomatoURL?: string
+  tomatoMeter?: string
+  tomatoImage?: string
+  tomatoRating?: string
+  tomatoReviews?: string
+  tomatoFresh?: string
+  tomatoRotten?: string
+  tomatoConsensus?: string
+  tomatoUserMeter?: string
+  tomatoUserRating?: string
+  tomatoUserReviews?: string
 }
 
 // Unified Ratings from multiple sources

@@ -41,6 +41,14 @@ export default function SearchPage() {
   // AbortController ref for canceling requests
   const abortControllerRef = useRef<AbortController | null>(null)
 
+  // Search input ref for auto-focus
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Auto-focus search input on mount
+  useEffect(() => {
+    searchInputRef.current?.focus()
+  }, [])
+
   // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
@@ -333,6 +341,7 @@ export default function SearchPage() {
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search for movies..."
                 value={query}
