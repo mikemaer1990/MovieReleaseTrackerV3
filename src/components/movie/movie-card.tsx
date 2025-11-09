@@ -101,21 +101,34 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
             {movie.title}
           </h3>
 
-          {/* Release Dates - Option 1: Stacked Two-Row Layout */}
-          <div className="space-y-1 sm:space-y-1.5 text-sm mb-1.5 sm:mb-2">
-            <div className="flex items-center gap-1.5">
-              <Film className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 shrink-0" />
-              <span className="text-foreground font-medium">
-                {formatDateWithFallback(unifiedDates?.usTheatrical)}
-              </span>
+          {/* Release Dates */}
+          {unifiedDates ? (
+            /* Detailed dates for main movie */
+            <div className="space-y-1 sm:space-y-1.5 text-sm mb-1.5 sm:mb-2">
+              <div className="flex items-center gap-1.5">
+                <Film className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 shrink-0" />
+                <span className="text-foreground font-medium">
+                  {formatDateWithFallback(unifiedDates.usTheatrical)}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Tv className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500 shrink-0" />
+                <span className="text-foreground font-medium">
+                  {formatDateWithFallback(unifiedDates.streaming)}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Tv className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500 shrink-0" />
-              <span className="text-foreground font-medium">
-                {formatDateWithFallback(unifiedDates?.streaming)}
-              </span>
+          ) : (
+            /* Single date for similar movies */
+            <div className="space-y-1 sm:space-y-1.5 text-sm mb-1.5 sm:mb-2">
+              <div className="flex items-center gap-1.5">
+                <Tv className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500 shrink-0" />
+                <span className="text-foreground font-medium">
+                  {formatDateWithFallback(movie.release_date)}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
         </CardContent>
 

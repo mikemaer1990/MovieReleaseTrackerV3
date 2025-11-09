@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType, MovieRatings } from '@/types/movie'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -65,6 +66,15 @@ export default function Design1({
   const director = movie.credits?.crew.find(c => c.job === 'Director')
   const mainCast = movie.credits?.cast.slice(0, 12) || []
   const usWatchProviders = movie['watch/providers']?.results?.US
+
+  // Check if streaming is currently available
+  const isStreamingAvailable = useMemo(() => {
+    if (!movie.unifiedDates.streaming) return false
+    const streamingDate = new Date(movie.unifiedDates.streaming)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Reset time to midnight for date-only comparison
+    return streamingDate <= today
+  }, [movie.unifiedDates.streaming])
 
   // Overview truncation logic
   const OVERVIEW_CHAR_LIMIT = 250
@@ -277,8 +287,8 @@ export default function Design1({
                 </CardContent>
               </Card>
 
-              {/* Follow Buttons - Compact on mobile, full on desktop */}
-              {isAuthenticated && (
+              {/* Follow Buttons or Where to Watch - Conditional based on streaming availability */}
+              {isAuthenticated && !isStreamingAvailable && (
                 <div role="group" aria-label="Movie follow options">
                   {/* Mobile: Compact Icon Buttons */}
                   <div className="flex flex-col gap-2 md:hidden">
@@ -384,6 +394,47 @@ export default function Design1({
                         <span>Follow Both</span>
                       </Button>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* Where to Watch Button - Show when streaming is available */}
+              {isStreamingAvailable && usWatchProviders && (usWatchProviders.flatrate?.length || usWatchProviders.rent?.length || usWatchProviders.buy?.length) && (
+                <div role="group" aria-label="Where to watch options">
+                  {/* Mobile */}
+                  <div className="md:hidden">
+                    <Button
+                      size="default"
+                      className="w-full gap-2 transition-all duration-200 bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500"
+                      asChild
+                    >
+                      <a
+                        href={usWatchProviders.link || `https://www.themoviedb.org/movie/${movie.id}/watch`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Tv className="h-4 w-4" aria-hidden="true" />
+                        <span className="text-sm">Where to Watch</span>
+                      </a>
+                    </Button>
+                  </div>
+
+                  {/* Desktop */}
+                  <div className="hidden md:block">
+                    <Button
+                      size="lg"
+                      className="w-full gap-2 transition-all duration-200 bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500 hover:shadow-lg hover:shadow-yellow-500/50"
+                      asChild
+                    >
+                      <a
+                        href={usWatchProviders.link || `https://www.themoviedb.org/movie/${movie.id}/watch`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Tv className="h-4 w-4" aria-hidden="true" />
+                        <span>Where to Watch</span>
+                      </a>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -588,84 +639,6 @@ export default function Design1({
                 </Card>
               ))}
             </div>
-          </section>
-        )}
-
-        {/* Where to Watch */}
-        {usWatchProviders && (usWatchProviders.flatrate?.length || usWatchProviders.rent?.length || usWatchProviders.buy?.length) && (
-          <section aria-labelledby="watch-providers-heading">
-            <h2 id="watch-providers-heading" className="text-xl md:text-2xl font-bold mb-4 md:mb-5">Where to Watch</h2>
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="space-y-6">
-                  {usWatchProviders.flatrate && usWatchProviders.flatrate.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Stream</h3>
-                      <div className="flex flex-wrap gap-4">
-                        {usWatchProviders.flatrate.map(provider => (
-                          <div key={provider.provider_id} className="flex flex-col items-center gap-2 group">
-                            <div className="relative w-16 h-16 rounded-lg overflow-hidden ring-2 ring-border group-hover:ring-primary transition-all">
-                              <Image
-                                src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
-                                alt={`Stream on ${provider.provider_name}`}
-                                fill
-                                sizes="64px"
-                                className="object-cover"
-                              />
-                            </div>
-                            <span className="text-xs text-center max-w-[80px] truncate">{provider.provider_name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {usWatchProviders.rent && usWatchProviders.rent.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Rent</h3>
-                      <div className="flex flex-wrap gap-4">
-                        {usWatchProviders.rent.map(provider => (
-                          <div key={provider.provider_id} className="flex flex-col items-center gap-2 group">
-                            <div className="relative w-16 h-16 rounded-lg overflow-hidden ring-2 ring-border group-hover:ring-primary transition-all">
-                              <Image
-                                src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
-                                alt={`Rent on ${provider.provider_name}`}
-                                fill
-                                sizes="64px"
-                                className="object-cover"
-                              />
-                            </div>
-                            <span className="text-xs text-center max-w-[80px] truncate">{provider.provider_name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {usWatchProviders.buy && usWatchProviders.buy.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Buy</h3>
-                      <div className="flex flex-wrap gap-4">
-                        {usWatchProviders.buy.map(provider => (
-                          <div key={provider.provider_id} className="flex flex-col items-center gap-2 group">
-                            <div className="relative w-16 h-16 rounded-lg overflow-hidden ring-2 ring-border group-hover:ring-primary transition-all">
-                              <Image
-                                src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
-                                alt={`Buy on ${provider.provider_name}`}
-                                fill
-                                sizes="64px"
-                                className="object-cover"
-                              />
-                            </div>
-                            <span className="text-xs text-center max-w-[80px] truncate">{provider.provider_name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
           </section>
         )}
 

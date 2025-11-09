@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType, MovieRatings } from '@/types/movie'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -70,6 +71,15 @@ export default function Design2({
 
   // Get US watch providers
   const usWatchProviders = movie['watch/providers']?.results?.US
+
+  // Check if streaming is currently available
+  const isStreamingAvailable = useMemo(() => {
+    if (!movie.unifiedDates.streaming) return false
+    const streamingDate = new Date(movie.unifiedDates.streaming)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Reset time to midnight for date-only comparison
+    return streamingDate <= today
+  }, [movie.unifiedDates.streaming])
 
   // Format runtime
   const formatRuntime = (minutes: number) => {
@@ -145,8 +155,8 @@ export default function Design2({
               </div>
             </div>
 
-            {/* Follow Buttons */}
-            {isAuthenticated && (
+            {/* Follow Buttons - Only show if streaming is not yet available */}
+            {isAuthenticated && !isStreamingAvailable && (
               <div className="space-y-2">
                 <Button
                   size="sm"
@@ -195,6 +205,24 @@ export default function Design2({
                   </Button>
                 )}
               </div>
+            )}
+
+            {/* Where to Watch Button - Show when streaming is available */}
+            {isStreamingAvailable && usWatchProviders && (usWatchProviders.flatrate?.length || usWatchProviders.rent?.length || usWatchProviders.buy?.length) && (
+              <Button
+                size="lg"
+                className="w-full gap-2 transition-all duration-200 bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500 hover:shadow-lg hover:shadow-yellow-500/50"
+                asChild
+              >
+                <a
+                  href={usWatchProviders.link || `https://www.themoviedb.org/movie/${movie.id}/watch`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Tv className="h-5 w-5" aria-hidden="true" />
+                  <span>Where to Watch</span>
+                </a>
+              </Button>
             )}
 
             {/* Quick Facts */}
@@ -373,77 +401,6 @@ export default function Design2({
                         Next
                         <ChevronRight className="h-4 w-4 ml-1" />
                       </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Where to Watch */}
-            {usWatchProviders && (
-              <div>
-                <h2 className="text-xl font-bold mb-4">Where to Watch</h2>
-                <div className="bg-zinc-900 border border-zinc-800 rounded p-4 space-y-4">
-                  {usWatchProviders.flatrate && usWatchProviders.flatrate.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-zinc-400 mb-3">Stream</h3>
-                      <div className="flex flex-wrap gap-3">
-                        {usWatchProviders.flatrate.map(provider => (
-                          <div key={provider.provider_id} className="flex flex-col items-center gap-2">
-                            <div className="relative w-12 h-12 rounded overflow-hidden border border-zinc-700">
-                              <Image
-                                src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
-                                alt={provider.provider_name}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                            <span className="text-xs text-center text-zinc-400">{provider.provider_name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {usWatchProviders.rent && usWatchProviders.rent.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-zinc-400 mb-3">Rent</h3>
-                      <div className="flex flex-wrap gap-3">
-                        {usWatchProviders.rent.map(provider => (
-                          <div key={provider.provider_id} className="flex flex-col items-center gap-2">
-                            <div className="relative w-12 h-12 rounded overflow-hidden border border-zinc-700">
-                              <Image
-                                src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
-                                alt={provider.provider_name}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                            <span className="text-xs text-center text-zinc-400">{provider.provider_name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {usWatchProviders.buy && usWatchProviders.buy.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-zinc-400 mb-3">Buy</h3>
-                      <div className="flex flex-wrap gap-3">
-                        {usWatchProviders.buy.map(provider => (
-                          <div key={provider.provider_id} className="flex flex-col items-center gap-2">
-                            <div className="relative w-12 h-12 rounded overflow-hidden border border-zinc-700">
-                              <Image
-                                src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
-                                alt={provider.provider_name}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                            <span className="text-xs text-center text-zinc-400">{provider.provider_name}</span>
-                          </div>
-                        ))}
-                      </div>
                     </div>
                   )}
                 </div>
