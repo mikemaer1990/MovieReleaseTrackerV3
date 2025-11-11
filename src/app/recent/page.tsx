@@ -13,6 +13,7 @@ import {
   Calendar,
   Sparkles
 } from 'lucide-react'
+import { isStreamingReleased } from '@/lib/utils'
 
 type FollowType = 'THEATRICAL' | 'STREAMING' | 'BOTH'
 
@@ -289,6 +290,17 @@ export default function RecentMovies() {
                 original_title: movie.title,
               }
 
+              const unifiedDates = {
+                usTheatrical: movie.unifiedDates?.usTheatrical || null,
+                streaming: movie.unifiedDates?.streaming || movie.unifiedDates?.digital || null,
+                primary: movie.release_date,
+                limited: null,
+                digital: movie.unifiedDates?.digital || null,
+              }
+
+              // Check if movie is released on streaming
+              const isReleased = isStreamingReleased({ unifiedDates })
+
               return (
                 <MovieCard
                   key={movie.id}
@@ -297,14 +309,8 @@ export default function RecentMovies() {
                   onUnfollow={handleUnfollow}
                   followTypes={getMovieFollowTypes(movie.id)}
                   loading={followLoading}
-                  unifiedDates={{
-                    usTheatrical: movie.unifiedDates?.usTheatrical || null,
-                    streaming: movie.unifiedDates?.streaming || movie.unifiedDates?.digital || null,
-                    primary: movie.release_date,
-                    limited: null,
-                    digital: movie.unifiedDates?.digital || null,
-                  }}
-                  className={isMovieFollowed(movie.id) ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
+                  unifiedDates={unifiedDates}
+                  className={isMovieFollowed(movie.id) && !isReleased ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
                 />
               )
             })}

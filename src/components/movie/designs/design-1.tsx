@@ -20,7 +20,9 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
-  Calendar
+  Calendar,
+  ExternalLink,
+  X
 } from 'lucide-react'
 import { formatDate, cn } from '@/lib/utils'
 
@@ -398,43 +400,87 @@ export default function Design1({
                 </div>
               )}
 
-              {/* Where to Watch Button - Show when streaming is available */}
-              {isStreamingAvailable && usWatchProviders && (usWatchProviders.flatrate?.length || usWatchProviders.rent?.length || usWatchProviders.buy?.length) && (
-                <div role="group" aria-label="Where to watch options">
+              {/* Where to Watch / Unfollow Buttons - Show when streaming is available */}
+              {isStreamingAvailable && (usWatchProviders && (usWatchProviders.flatrate?.length || usWatchProviders.rent?.length || usWatchProviders.buy?.length) || followTypes.length > 0) && (
+                <div role="group" aria-label="Streaming action options">
                   {/* Mobile */}
-                  <div className="md:hidden">
-                    <Button
-                      size="default"
-                      className="w-full gap-2 transition-all duration-200 bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500"
-                      asChild
-                    >
-                      <a
-                        href={usWatchProviders.link || `https://www.themoviedb.org/movie/${movie.id}/watch`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                  <div className="flex flex-col gap-2 md:hidden">
+                    {usWatchProviders && (usWatchProviders.flatrate?.length || usWatchProviders.rent?.length || usWatchProviders.buy?.length) && (
+                      <Button
+                        size="default"
+                        className="w-full gap-2 transition-all duration-200 bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500"
+                        asChild
                       >
-                        <Tv className="h-4 w-4" aria-hidden="true" />
-                        <span className="text-sm">Where to Watch</span>
-                      </a>
-                    </Button>
+                        <a
+                          href={usWatchProviders.link || `https://www.themoviedb.org/movie/${movie.id}/watch`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                          <span className="text-sm">Where to Watch</span>
+                        </a>
+                      </Button>
+                    )}
+                    {isAuthenticated && followTypes.length > 0 && (
+                      <Button
+                        size="default"
+                        onClick={() => {
+                          // Unfollow all types
+                          if (isFollowingBoth) {
+                            onUnfollow(movie.id, 'BOTH')
+                          } else {
+                            if (isFollowingTheatrical) onUnfollow(movie.id, 'THEATRICAL')
+                            if (isFollowingStreaming) onUnfollow(movie.id, 'STREAMING')
+                          }
+                        }}
+                        disabled={followLoading}
+                        className="w-full gap-2 transition-all duration-200 bg-zinc-900 border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-200"
+                        variant="ghost"
+                      >
+                        <X className="h-4 w-4" aria-hidden="true" />
+                        <span className="text-sm">Unfollow</span>
+                      </Button>
+                    )}
                   </div>
 
                   {/* Desktop */}
-                  <div className="hidden md:block">
-                    <Button
-                      size="lg"
-                      className="w-full gap-2 transition-all duration-200 bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500 hover:shadow-lg hover:shadow-yellow-500/50"
-                      asChild
-                    >
-                      <a
-                        href={usWatchProviders.link || `https://www.themoviedb.org/movie/${movie.id}/watch`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                  <div className="hidden md:flex gap-3">
+                    {usWatchProviders && (usWatchProviders.flatrate?.length || usWatchProviders.rent?.length || usWatchProviders.buy?.length) && (
+                      <Button
+                        size="lg"
+                        className="flex-1 gap-2 transition-all duration-200 bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500 hover:shadow-lg hover:shadow-yellow-500/50"
+                        asChild
                       >
-                        <Tv className="h-4 w-4" aria-hidden="true" />
-                        <span>Where to Watch</span>
-                      </a>
-                    </Button>
+                        <a
+                          href={usWatchProviders.link || `https://www.themoviedb.org/movie/${movie.id}/watch`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                          <span>Where to Watch</span>
+                        </a>
+                      </Button>
+                    )}
+                    {isAuthenticated && followTypes.length > 0 && (
+                      <Button
+                        size="lg"
+                        onClick={() => {
+                          // Unfollow all types
+                          if (isFollowingBoth) {
+                            onUnfollow(movie.id, 'BOTH')
+                          } else {
+                            if (isFollowingTheatrical) onUnfollow(movie.id, 'THEATRICAL')
+                            if (isFollowingStreaming) onUnfollow(movie.id, 'STREAMING')
+                          }
+                        }}
+                        disabled={followLoading}
+                        className="flex-1 gap-2 transition-all duration-200 bg-zinc-900 border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-200"
+                        variant="ghost"
+                      >
+                        <X className="h-4 w-4" aria-hidden="true" />
+                        <span>Unfollow</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
               )}

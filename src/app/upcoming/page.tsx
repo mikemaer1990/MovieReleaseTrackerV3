@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Clock
 } from 'lucide-react'
+import { isStreamingReleased } from '@/lib/utils'
 
 type FollowType = 'THEATRICAL' | 'STREAMING' | 'BOTH'
 type SortType = 'popularity' | 'release_date'
@@ -317,6 +318,15 @@ export default function UpcomingMovies() {
                 original_title: movie.title,
               }
 
+              const unifiedDates = {
+                usTheatrical: movie.unifiedDates?.usTheatrical || null,
+                streaming: movie.unifiedDates?.streaming || null,
+                primary: movie.release_date,
+                limited: null,
+                digital: null,
+              }
+              const isReleased = isStreamingReleased({ unifiedDates })
+
               return (
                 <MovieCard
                   key={movie.id}
@@ -325,14 +335,8 @@ export default function UpcomingMovies() {
                   onUnfollow={handleUnfollow}
                   followTypes={getMovieFollowTypes(movie.id)}
                   loading={followLoading}
-                  unifiedDates={{
-                    usTheatrical: movie.unifiedDates?.usTheatrical || null,
-                    streaming: movie.unifiedDates?.streaming || null,
-                    primary: movie.release_date,
-                    limited: null,
-                    digital: null,
-                  }}
-                  className={isMovieFollowed(movie.id) ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
+                  unifiedDates={unifiedDates}
+                  className={isMovieFollowed(movie.id) && !isReleased ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
                 />
               )
             })}

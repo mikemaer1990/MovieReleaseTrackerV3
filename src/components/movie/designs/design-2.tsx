@@ -19,7 +19,9 @@ import {
   DollarSign,
   Globe,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ExternalLink,
+  X
 } from 'lucide-react'
 import { formatDate, cn } from '@/lib/utils'
 
@@ -207,22 +209,46 @@ export default function Design2({
               </div>
             )}
 
-            {/* Where to Watch Button - Show when streaming is available */}
-            {isStreamingAvailable && usWatchProviders && (usWatchProviders.flatrate?.length || usWatchProviders.rent?.length || usWatchProviders.buy?.length) && (
-              <Button
-                size="lg"
-                className="w-full gap-2 transition-all duration-200 bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500 hover:shadow-lg hover:shadow-yellow-500/50"
-                asChild
-              >
-                <a
-                  href={usWatchProviders.link || `https://www.themoviedb.org/movie/${movie.id}/watch`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Tv className="h-5 w-5" aria-hidden="true" />
-                  <span>Where to Watch</span>
-                </a>
-              </Button>
+            {/* Where to Watch / Unfollow Buttons - Show when streaming is available */}
+            {isStreamingAvailable && (usWatchProviders && (usWatchProviders.flatrate?.length || usWatchProviders.rent?.length || usWatchProviders.buy?.length) || followTypes.length > 0) && (
+              <div className="flex flex-col gap-2">
+                {usWatchProviders && (usWatchProviders.flatrate?.length || usWatchProviders.rent?.length || usWatchProviders.buy?.length) && (
+                  <Button
+                    size="lg"
+                    className="w-full gap-2 transition-all duration-200 bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500 hover:shadow-lg hover:shadow-yellow-500/50"
+                    asChild
+                  >
+                    <a
+                      href={usWatchProviders.link || `https://www.themoviedb.org/movie/${movie.id}/watch`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="h-5 w-5" aria-hidden="true" />
+                      <span>Where to Watch</span>
+                    </a>
+                  </Button>
+                )}
+                {isAuthenticated && followTypes.length > 0 && (
+                  <Button
+                    size="lg"
+                    onClick={() => {
+                      // Unfollow all types
+                      if (isFollowingBoth) {
+                        onUnfollow(movie.id, 'BOTH')
+                      } else {
+                        if (isFollowingTheatrical) onUnfollow(movie.id, 'THEATRICAL')
+                        if (isFollowingStreaming) onUnfollow(movie.id, 'STREAMING')
+                      }
+                    }}
+                    disabled={followLoading}
+                    className="w-full gap-2 transition-all duration-200 bg-zinc-900 border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-200"
+                    variant="ghost"
+                  >
+                    <X className="h-5 w-5" aria-hidden="true" />
+                    <span>Unfollow</span>
+                  </Button>
+                )}
+              </div>
             )}
 
             {/* Quick Facts */}

@@ -9,6 +9,7 @@ import { Search, Loader2, X } from 'lucide-react'
 import { TMDBMovie, TMDBSearchResponse, FollowType, UnifiedReleaseDates } from '@/types/movie'
 import { useFollows } from '@/hooks/use-follows'
 import { useDebounce } from '@/hooks/use-debounce'
+import { isStreamingReleased } from '@/lib/utils'
 
 interface FollowRecord {
   movies: {
@@ -324,7 +325,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="py-6 space-y-8">
       {/* Hero Search Section */}
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="text-center space-y-3">
@@ -421,6 +422,9 @@ export default function SearchPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                 {results.map((movie) => {
                   const isFollowed = followingMovies.has(movie.id)
+                  const unifiedDates = (movie as TMDBMovie & { unifiedDates?: UnifiedReleaseDates }).unifiedDates
+                  const isReleased = isStreamingReleased({ unifiedDates })
+
                   return (
                     <div key={movie.id} className="animate-in fade-in-50 slide-in-from-bottom-4 duration-300">
                       <MovieCard
@@ -429,8 +433,8 @@ export default function SearchPage() {
                         onUnfollow={handleUnfollow}
                         followTypes={followingMovies.get(movie.id) || []}
                         loading={followLoading}
-                        unifiedDates={(movie as TMDBMovie & { unifiedDates?: UnifiedReleaseDates }).unifiedDates}
-                        className={isFollowed ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
+                        unifiedDates={unifiedDates}
+                        className={isFollowed && !isReleased ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
                       />
                     </div>
                   )
@@ -504,6 +508,9 @@ export default function SearchPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                 {discoverMovies.map((movie) => {
                   const isFollowed = followingMovies.has(movie.id)
+                  const unifiedDates = (movie as TMDBMovie & { unifiedDates?: UnifiedReleaseDates }).unifiedDates
+                  const isReleased = isStreamingReleased({ unifiedDates })
+
                   return (
                     <div key={movie.id}>
                       <MovieCard
@@ -512,8 +519,8 @@ export default function SearchPage() {
                         onUnfollow={handleUnfollow}
                         followTypes={followingMovies.get(movie.id) || []}
                         loading={followLoading}
-                        unifiedDates={(movie as TMDBMovie & { unifiedDates?: UnifiedReleaseDates }).unifiedDates}
-                        className={isFollowed ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
+                        unifiedDates={unifiedDates}
+                        className={isFollowed && !isReleased ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
                       />
                     </div>
                   )

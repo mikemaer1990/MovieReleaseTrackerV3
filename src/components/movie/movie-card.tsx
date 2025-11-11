@@ -4,9 +4,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { TMDBMovie, UnifiedReleaseDates } from '@/types/movie'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
+import { cn, isStreamingReleased } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Calendar, Star, Plus, Check, Film, Tv } from 'lucide-react'
+import { Calendar, Star, Plus, Check, Film, Tv, ExternalLink, X } from 'lucide-react'
 import { getPosterUrl } from '@/lib/tmdb-utils'
 import { formatDate } from '@/lib/utils'
 
@@ -23,7 +23,10 @@ interface MovieCardProps {
 export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loading, unifiedDates, className }: MovieCardProps) {
   const posterUrl = getPosterUrl(movie.poster_path)
   const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : null
-  
+
+  // Check if movie is released on streaming
+  const isReleased = isStreamingReleased({ unifiedDates })
+
   // Helper function to format dates with TBA fallback
   const formatDateWithFallback = (date: string | null | undefined) => {
     if (!date) return 'TBA'
@@ -33,13 +36,14 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
       return 'TBA'
     }
   }
-  
+
   // Helper variables for follow status
   const isFollowingBoth = followTypes.includes('BOTH')
   const isFollowingTheatrical = followTypes.includes('THEATRICAL') || isFollowingBoth
   const isFollowingStreaming = followTypes.includes('STREAMING') || isFollowingBoth
   const isCompletelyFollowed = isFollowingBoth || (followTypes.includes('THEATRICAL') && followTypes.includes('STREAMING'))
   const isNotFollowed = followTypes.length === 0
+  const isFollowing = followTypes.length > 0
   
   // Toggle handlers
   const handleTheatricalToggle = () => {
@@ -71,7 +75,11 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
   }
 
   return (
-    <Card className={cn("overflow-hidden hover:shadow-lg transition-shadow flex flex-row sm:flex-col h-full", className)}>
+    <Card className={cn(
+      "overflow-hidden hover:shadow-lg transition-shadow flex flex-row sm:flex-col h-full",
+      isReleased && isFollowing && "ring-2 ring-emerald-500/30 bg-emerald-500/5",
+      className
+    )}>
       <div className="relative w-36 flex-shrink-0 sm:w-full sm:aspect-[3/4] bg-muted">
         {posterUrl ? (
           <Image
@@ -147,92 +155,137 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
 
           {onFollow && onUnfollow && (
             <div className="space-y-2">
-              {/* Always show individual toggle buttons */}
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleTheatricalToggle}
-                  disabled={loading}
-                  className={`flex items-center gap-1 sm:gap-1.5 transition-colors duration-200 py-1.5 sm:py-3 md:py-1.5 text-sm border ${
-                    isFollowingTheatrical
-                      ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-black border-yellow-500 hover:from-yellow-400 hover:to-amber-400 hover:shadow-sm'
-                      : 'bg-zinc-900 border-yellow-500/60 text-zinc-300 hover:bg-zinc-800 hover:border-yellow-500 hover:text-yellow-400'
-                  }`}
-                >
-                  {isFollowingTheatrical ? (
-                    <>
-                      <Check className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="hidden xs:inline sm:inline">Theater</span>
-                      <span className="xs:hidden sm:hidden">🎬</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="hidden xs:inline sm:inline">Theater</span>
-                      <span className="xs:hidden sm:hidden">🎬</span>
-                    </>
-                  )}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleStreamingToggle}
-                  disabled={loading}
-                  className={`flex items-center gap-1 sm:gap-1.5 transition-colors duration-200 py-1.5 sm:py-3 md:py-1.5 text-sm border ${
-                    isFollowingStreaming
-                      ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-black border-amber-600 hover:from-amber-500 hover:to-yellow-500 hover:shadow-sm'
-                      : 'bg-zinc-900 border-amber-600/60 text-zinc-300 hover:bg-zinc-800 hover:border-amber-600 hover:text-yellow-500'
-                  }`}
-                >
-                  {isFollowingStreaming ? (
-                    <>
-                      <Check className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="hidden xs:inline sm:inline">Stream</span>
-                      <span className="xs:hidden sm:hidden">📺</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="hidden xs:inline sm:inline">Stream</span>
-                      <span className="xs:hidden sm:hidden">📺</span>
-                    </>
-                  )}
-                </Button>
-              </div>
+              {/* Show different buttons based on release status */}
+              {isReleased && isFollowing ? (
+                /* Released movie - show Where to Watch + Unfollow */
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    size="sm"
+                    variant="default"
+                    asChild
+                    className="flex items-center gap-1 sm:gap-1.5 py-1.5 sm:py-3 md:py-1.5 text-sm bg-gradient-to-r from-yellow-500 to-amber-500 text-black border-yellow-500 hover:from-yellow-400 hover:to-amber-400"
+                  >
+                    <a
+                      href={`https://www.themoviedb.org/movie/${movie.id}/watch`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline sm:inline">Watch</span>
+                      <span className="xs:hidden sm:hidden">▶</span>
+                    </a>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      // Unfollow all types for released movies
+                      if (isFollowingBoth) {
+                        onUnfollow(movie.id, 'BOTH')
+                      } else {
+                        if (isFollowingTheatrical) onUnfollow(movie.id, 'THEATRICAL')
+                        if (isFollowingStreaming) onUnfollow(movie.id, 'STREAMING')
+                      }
+                    }}
+                    disabled={loading}
+                    className="flex items-center gap-1 sm:gap-1.5 py-1.5 sm:py-3 md:py-1.5 text-sm bg-zinc-900 border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-200"
+                  >
+                    <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden xs:inline sm:inline">Unfollow</span>
+                    <span className="xs:hidden sm:hidden">✕</span>
+                  </Button>
+                </div>
+              ) : (
+                /* Upcoming movie - show standard follow buttons */
+                <>
+                  {/* Always show individual toggle buttons */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleTheatricalToggle}
+                      disabled={loading}
+                      className={`flex items-center gap-1 sm:gap-1.5 transition-colors duration-200 py-1.5 sm:py-3 md:py-1.5 text-sm border ${
+                        isFollowingTheatrical
+                          ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-black border-yellow-500 hover:from-yellow-400 hover:to-amber-400 hover:shadow-sm'
+                          : 'bg-zinc-900 border-yellow-500/60 text-zinc-300 hover:bg-zinc-800 hover:border-yellow-500 hover:text-yellow-400'
+                      }`}
+                    >
+                      {isFollowingTheatrical ? (
+                        <>
+                          <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden xs:inline sm:inline">Theater</span>
+                          <span className="xs:hidden sm:hidden">🎬</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden xs:inline sm:inline">Theater</span>
+                          <span className="xs:hidden sm:hidden">🎬</span>
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleStreamingToggle}
+                      disabled={loading}
+                      className={`flex items-center gap-1 sm:gap-1.5 transition-colors duration-200 py-1.5 sm:py-3 md:py-1.5 text-sm border ${
+                        isFollowingStreaming
+                          ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-black border-amber-600 hover:from-amber-500 hover:to-yellow-500 hover:shadow-sm'
+                          : 'bg-zinc-900 border-amber-600/60 text-zinc-300 hover:bg-zinc-800 hover:border-amber-600 hover:text-yellow-500'
+                      }`}
+                    >
+                      {isFollowingStreaming ? (
+                        <>
+                          <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden xs:inline sm:inline">Stream</span>
+                          <span className="xs:hidden sm:hidden">📺</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden xs:inline sm:inline">Stream</span>
+                          <span className="xs:hidden sm:hidden">📺</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
 
-              {/* Follow Both button - only show if not completely followed */}
-              {!isCompletelyFollowed && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onFollow(movie.id, 'BOTH')}
-                  disabled={loading}
-                  className="w-full flex items-center gap-1 sm:gap-1.5 transition-colors duration-200 py-1.5 sm:py-3 md:py-1.5 text-sm bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 text-black border-yellow-500 hover:from-yellow-400 hover:via-amber-400 hover:to-yellow-500 hover:shadow-md"
-                >
-                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>Follow Both</span>
-                </Button>
-              )}
+                  {/* Follow Both button - only show if not completely followed */}
+                  {!isCompletelyFollowed && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onFollow(movie.id, 'BOTH')}
+                      disabled={loading}
+                      className="w-full flex items-center gap-1 sm:gap-1.5 transition-colors duration-200 py-1.5 sm:py-3 md:py-1.5 text-sm bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 text-black border-yellow-500 hover:from-yellow-400 hover:via-amber-400 hover:to-yellow-500 hover:shadow-md"
+                    >
+                      <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span>Follow Both</span>
+                    </Button>
+                  )}
 
-              {/* Unfollow Both button - only show if completely followed */}
-              {isCompletelyFollowed && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    if (isFollowingBoth) {
-                      onUnfollow(movie.id, 'BOTH')
-                    } else {
-                      onUnfollow(movie.id, 'THEATRICAL')
-                      onUnfollow(movie.id, 'STREAMING')
-                    }
-                  }}
-                  disabled={loading}
-                  className="w-full flex items-center gap-1 sm:gap-1.5 transition-colors duration-200 py-1.5 sm:py-3 md:py-1.5 text-sm bg-gradient-to-r from-red-900/30 to-red-800/30 border-red-500 text-red-300 hover:from-red-900/50 hover:to-red-800/50 hover:text-red-200"
-                >
-                  <span>Unfollow All</span>
-                </Button>
+                  {/* Unfollow Both button - only show if completely followed */}
+                  {isCompletelyFollowed && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        if (isFollowingBoth) {
+                          onUnfollow(movie.id, 'BOTH')
+                        } else {
+                          onUnfollow(movie.id, 'THEATRICAL')
+                          onUnfollow(movie.id, 'STREAMING')
+                        }
+                      }}
+                      disabled={loading}
+                      className="w-full flex items-center gap-1 sm:gap-1.5 transition-colors duration-200 py-1.5 sm:py-3 md:py-1.5 text-sm bg-gradient-to-r from-red-900/30 to-red-800/30 border-red-500 text-red-300 hover:from-red-900/50 hover:to-red-800/50 hover:text-red-200"
+                    >
+                      <span>Unfollow All</span>
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           )}

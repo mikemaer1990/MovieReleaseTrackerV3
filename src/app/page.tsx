@@ -17,7 +17,7 @@ export default function Home() {
 
   if (isAuthenticated) {
     return (
-      <div className="space-y-8 sm:space-y-12 xl:min-h-[calc(100vh-10rem)] xl:flex xl:flex-col xl:justify-center">
+      <div className="py-6 space-y-8 sm:space-y-12 xl:min-h-[calc(100vh-10rem)] xl:flex xl:flex-col xl:justify-center">
         <div className="text-center space-y-3 sm:space-y-6">
           <div className="flex justify-center">
             <Film className="h-10 w-10 sm:h-16 sm:w-16 text-primary" />
@@ -93,7 +93,7 @@ export default function Home() {
   }
 
   return (
-    <div className="space-y-8 sm:space-y-12 xl:min-h-[calc(100vh-10rem)] xl:flex xl:flex-col xl:justify-center">
+    <div className="py-6 space-y-8 sm:space-y-12 xl:min-h-[calc(100vh-10rem)] xl:flex xl:flex-col xl:justify-center">
       <div className="text-center space-y-3 sm:space-y-6">
         <div className="flex justify-center">
           <Film className="h-10 w-10 sm:h-16 sm:w-16 text-primary" />

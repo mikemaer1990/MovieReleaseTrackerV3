@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Film, Calendar, Star, Search } from 'lucide-react'
 import Link from 'next/link'
 import { MovieService } from '@/lib/services/movie-service'
+import { isStreamingReleased } from '@/lib/utils'
 type FollowType = 'THEATRICAL' | 'STREAMING' | 'BOTH'
 
 interface GroupedMovie {
@@ -162,7 +163,7 @@ export default function Dashboard() {
 
   if (!isAuthenticated) {
     return (
-      <div className="text-center space-y-4">
+      <div className="py-6 text-center space-y-4">
         <h1 className="text-2xl font-bold">Please sign in to view your dashboard</h1>
         <Button asChild>
           <Link href="/auth/signin">Sign In</Link>
@@ -172,7 +173,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="py-6 space-y-8">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-primary">My Movie Dashboard</h1>
@@ -282,6 +283,9 @@ export default function Dashboard() {
               }))
               const unifiedDates = MovieService.buildUnifiedDatesFromDB(dbReleaseDates)
 
+              // Check if movie is released on streaming
+              const isReleased = isStreamingReleased({ unifiedDates })
+
               return (
                 <MovieCard
                   key={groupedMovie.movies.id}
@@ -291,7 +295,7 @@ export default function Dashboard() {
                   followTypes={groupedMovie.followTypes}
                   loading={loading}
                   unifiedDates={unifiedDates}
-                  className="ring-2 ring-primary/20 bg-primary/5"
+                  className={!isReleased ? "ring-2 ring-primary/20 bg-primary/5" : undefined}
                 />
               )
             })}

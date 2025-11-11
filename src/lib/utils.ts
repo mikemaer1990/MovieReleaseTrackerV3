@@ -37,3 +37,16 @@ export function isDateInFuture(date: string): boolean {
   const today = new Date().toISOString().split('T')[0]
   return date > today
 }
+
+/**
+ * Check if a movie has been released on streaming/digital platforms
+ * @param movie - Movie object with unifiedDates
+ * @returns true if streaming date is today or in the past, false otherwise
+ */
+export function isStreamingReleased(movie: { unifiedDates?: { streaming: string | null } | null }): boolean {
+  if (!movie.unifiedDates?.streaming) {
+    return false
+  }
+  const today = new Date().toISOString().split('T')[0]
+  return movie.unifiedDates.streaming <= today
+}
