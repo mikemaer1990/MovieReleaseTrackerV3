@@ -71,10 +71,10 @@ export default function MovieDetailsLoading() {
                 </CardContent>
               </Card>
 
-              {/* Follow Buttons */}
+              {/* Action Buttons - Shows placeholder for both follow buttons and Where to Watch/Unfollow */}
               <div className="flex flex-wrap gap-3">
-                <div className="h-11 w-36 bg-gradient-to-r from-muted via-muted/50 to-muted animate-shimmer bg-[length:200%_100%] rounded" />
-                <div className="h-11 w-36 bg-gradient-to-r from-muted via-muted/50 to-muted animate-shimmer bg-[length:200%_100%] rounded" />
+                <div className="h-11 w-40 bg-gradient-to-r from-muted via-muted/50 to-muted animate-shimmer bg-[length:200%_100%] rounded" />
+                <div className="h-11 w-32 bg-gradient-to-r from-muted via-muted/50 to-muted animate-shimmer bg-[length:200%_100%] rounded" />
               </div>
             </div>
           </div>
