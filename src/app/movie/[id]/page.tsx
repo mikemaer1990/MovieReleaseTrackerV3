@@ -53,7 +53,8 @@ async function getInitialRatings(movie: TMDBEnhancedMovieDetails): Promise<Movie
   // Try to fetch OMDB ratings with a 1-second timeout
   // If it responds quickly, include them in initial render
   // If it's slow, they'll be loaded client-side
-  if (movie.external_ids?.imdb_id) {
+  const imdbId = movie.external_ids?.imdb_id
+  if (imdbId) {
     try {
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('timeout')), 1000)
@@ -61,7 +62,7 @@ async function getInitialRatings(movie: TMDBEnhancedMovieDetails): Promise<Movie
 
       const omdbPromise = (async () => {
         const { omdbService } = await import('@/lib/omdb')
-        return omdbService.getRatingsByImdbId(movie.external_ids.imdb_id!)
+        return omdbService.getRatingsByImdbId(imdbId)
       })()
 
       const omdbRatings = await Promise.race([omdbPromise, timeoutPromise]) as Partial<MovieRatings>
