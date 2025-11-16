@@ -23,7 +23,7 @@ import Design2 from './designs/design-2'
 
 interface MovieDetailsSwitcherProps {
   movie: TMDBEnhancedMovieDetails & { unifiedDates: UnifiedReleaseDates }
-  ratings: MovieRatings
+  initialRatings: MovieRatings
   initialDesign?: string
 }
 
@@ -32,7 +32,7 @@ const DESIGNS = [
   { id: '2', name: 'Classic IMDb Dark', description: 'Information-dense, professional, dark theme', component: Design2 },
 ]
 
-export default function MovieDetailsSwitcher({ movie, ratings, initialDesign }: MovieDetailsSwitcherProps) {
+export default function MovieDetailsSwitcher({ movie, initialRatings, initialDesign }: MovieDetailsSwitcherProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const currentDesign = searchParams.get('design') || initialDesign || '1'
@@ -40,12 +40,52 @@ export default function MovieDetailsSwitcher({ movie, ratings, initialDesign }: 
   const { isAuthenticated } = useAuthContext()
   const { followMovie, unfollowMovie, getUserFollows, loading: followLoading } = useFollows()
   const [followTypes, setFollowTypes] = useState<FollowType[]>([])
+  const [ratings, setRatings] = useState<MovieRatings>(initialRatings)
+  const [ratingsLoading, setRatingsLoading] = useState(false)
 
   useEffect(() => {
     if (isAuthenticated) {
       loadFollowStatus()
     }
   }, [isAuthenticated, movie.id])
+
+  // Fetch OMDB ratings client-side if they weren't included in initial render
+  useEffect(() => {
+    const fetchOMDBRatings = async () => {
+      if (!movie.external_ids?.imdb_id) return
+
+      // Check if we already have OMDB ratings (IMDb, RT, or Metacritic)
+      const hasOMDBRatings = initialRatings.imdb || initialRatings.rottenTomatoes || initialRatings.metacritic
+      if (hasOMDBRatings) {
+        console.log('[CLIENT] OMDB ratings already loaded server-side')
+        return
+      }
+
+      console.log('[CLIENT] Fetching OMDB ratings...')
+      setRatingsLoading(true)
+      try {
+        const response = await fetch(
+          `/api/movies/${movie.id}/ratings?imdbId=${movie.external_ids.imdb_id}`
+        )
+        const data = await response.json()
+
+        if (data.ratings) {
+          console.log('[CLIENT] OMDB ratings loaded')
+          setRatings(prev => ({
+            ...prev,
+            ...data.ratings
+          }))
+        }
+      } catch (error) {
+        console.error('Error fetching OMDB ratings:', error)
+      } finally {
+        setRatingsLoading(false)
+      }
+    }
+
+    fetchOMDBRatings()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [movie.id, movie.external_ids?.imdb_id])
 
   const loadFollowStatus = async () => {
     try {

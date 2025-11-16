@@ -30,15 +30,21 @@ class TMDBService {
   }
 
   private async fetchWithCache<T>(
-    url: string, 
-    cacheKey: string, 
+    url: string,
+    cacheKey: string,
     ttl: number = CACHE_TTL.long
   ): Promise<T> {
+    const start = Date.now()
+
     // Try cache first
     const cached = await CacheService.get<T>(cacheKey)
     if (cached) {
+      console.log(`[PERF] TMDB cache HIT for ${cacheKey} (${Date.now() - start}ms)`)
       return cached
     }
+
+    console.log(`[PERF] TMDB cache MISS for ${cacheKey}, fetching from API...`)
+    const apiStart = Date.now()
 
     // Fetch from API
     const apiKey = this.getApiKey()
@@ -48,10 +54,12 @@ class TMDBService {
     }
 
     const data: T = await response.json()
-    
+    const apiDuration = Date.now() - apiStart
+    console.log(`[PERF] TMDB API call took ${apiDuration}ms`)
+
     // Cache the result
     await CacheService.set(cacheKey, data, ttl)
-    
+
     return data
   }
 

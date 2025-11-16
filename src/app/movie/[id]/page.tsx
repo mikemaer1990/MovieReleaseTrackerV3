@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import MovieDetailsSwitcher from '@/components/movie/movie-details-switcher'
 import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, MovieRatings } from '@/types/movie'
 import { tmdbService } from '@/lib/tmdb'
-import { omdbService } from '@/lib/omdb'
 
 type Props = {
   params: Promise<{ id: string }>
@@ -18,7 +17,10 @@ async function getMovieDetails(id: string): Promise<(TMDBEnhancedMovieDetails & 
     }
 
     // Fetch enhanced movie details directly from TMDB service
+    const tmdbStart = Date.now()
     const movieDetails = await tmdbService.getEnhancedMovieDetails(movieId)
+    const tmdbDuration = Date.now() - tmdbStart
+    console.log(`[PERF] TMDB getEnhancedMovieDetails(${movieId}) took ${tmdbDuration}ms`)
 
     // Get unified release dates
     const unifiedDates = tmdbService.getUnifiedReleaseDates(movieDetails.release_dates)
@@ -33,7 +35,7 @@ async function getMovieDetails(id: string): Promise<(TMDBEnhancedMovieDetails & 
   }
 }
 
-async function getMovieRatings(movie: TMDBEnhancedMovieDetails): Promise<MovieRatings> {
+async function getInitialRatings(movie: TMDBEnhancedMovieDetails): Promise<MovieRatings> {
   const ratings: MovieRatings = {}
 
   // Add TMDB rating
@@ -45,14 +47,30 @@ async function getMovieRatings(movie: TMDBEnhancedMovieDetails): Promise<MovieRa
     }
   }
 
-  // Fetch OMDB ratings if we have an IMDb ID
+  // Try to fetch OMDB ratings with a 1-second timeout
+  // If it responds quickly, include them in initial render
+  // If it's slow, they'll be loaded client-side
   if (movie.external_ids?.imdb_id) {
     try {
-      const omdbRatings = await omdbService.getRatingsByImdbId(movie.external_ids.imdb_id)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 1000)
+      )
+
+      const omdbPromise = (async () => {
+        const { omdbService } = await import('@/lib/omdb')
+        return omdbService.getRatingsByImdbId(movie.external_ids.imdb_id!)
+      })()
+
+      const omdbRatings = await Promise.race([omdbPromise, timeoutPromise]) as Partial<MovieRatings>
+      console.log(`[PERF] OMDB loaded quickly, including in initial render`)
       Object.assign(ratings, omdbRatings)
     } catch (error) {
-      console.error('Error fetching OMDB ratings:', error)
-      // Continue without OMDB ratings - TMDB rating will still show
+      // Timeout or error - will be loaded client-side
+      if (error instanceof Error && error.message === 'timeout') {
+        console.log(`[PERF] OMDB timeout, will load client-side`)
+      } else {
+        console.error('Error fetching OMDB ratings:', error)
+      }
     }
   }
 
@@ -91,8 +109,8 @@ export default async function MovieDetailsPage({ params, searchParams }: Props) 
     notFound()
   }
 
-  // Fetch ratings from multiple sources
-  const ratings = await getMovieRatings(movie)
+  // Get initial ratings - tries OMDB with 1s timeout
+  const initialRatings = await getInitialRatings(movie)
 
   // Generate structured data for SEO
   const director = movie.credits?.crew.find(c => c.job === 'Director')
@@ -140,7 +158,7 @@ export default async function MovieDetailsPage({ params, searchParams }: Props) 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <MovieDetailsSwitcher movie={movie} ratings={ratings} initialDesign={design} />
+      <MovieDetailsSwitcher movie={movie} initialRatings={initialRatings} initialDesign={design} />
     </>
   )
 }

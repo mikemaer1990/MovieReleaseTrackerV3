@@ -20,25 +20,37 @@ class OMDBService {
    */
   async getMovieByImdbId(imdbId: string): Promise<OMDBResponse | null> {
     try {
+      // Validate IMDb ID format (should be tt followed by digits)
+      if (!imdbId || !imdbId.match(/^tt\d+$/)) {
+        console.warn(`[OMDB] Invalid IMDb ID format: ${imdbId}`)
+        return null
+      }
+
       const apiKey = this.getApiKey()
       const url = `${OMDB_BASE_URL}?apikey=${apiKey}&i=${imdbId}&plot=short&tomatoes=true`
 
+      console.log(`[PERF] OMDB fetching data for ${imdbId}...`)
+      const start = Date.now()
+
       const response = await fetch(url)
+      const fetchDuration = Date.now() - start
+
       if (!response.ok) {
-        console.error(`OMDB API error: ${response.status} ${response.statusText}`)
+        console.error(`[OMDB] API error: ${response.status} ${response.statusText} (took ${fetchDuration}ms)`)
         return null
       }
 
       const data: OMDBResponse = await response.json()
+      console.log(`[PERF] OMDB fetch completed in ${fetchDuration}ms`)
 
       if (data.Response === 'False') {
-        console.error(`OMDB API error: ${data.Error}`)
+        console.warn(`[OMDB] ${data.Error} for IMDb ID: ${imdbId}`)
         return null
       }
 
       return data
     } catch (error) {
-      console.error('Error fetching from OMDB:', error)
+      console.error('[OMDB] Error fetching from OMDB:', error)
       return null
     }
   }
