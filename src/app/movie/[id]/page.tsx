@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { cache } from 'react'
 import MovieDetailsSwitcher from '@/components/movie/movie-details-switcher'
 import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, MovieRatings } from '@/types/movie'
 import { tmdbService } from '@/lib/tmdb'
@@ -9,7 +10,9 @@ type Props = {
   searchParams: Promise<{ design?: string }>
 }
 
-async function getMovieDetails(id: string): Promise<(TMDBEnhancedMovieDetails & { unifiedDates: UnifiedReleaseDates }) | null> {
+// Wrap in React cache() to deduplicate calls within the same request
+// This prevents duplicate API calls when both generateMetadata and the page component fetch the same movie
+const getMovieDetails = cache(async (id: string): Promise<(TMDBEnhancedMovieDetails & { unifiedDates: UnifiedReleaseDates }) | null> => {
   try {
     const movieId = parseInt(id, 10)
     if (isNaN(movieId)) {
@@ -33,7 +36,7 @@ async function getMovieDetails(id: string): Promise<(TMDBEnhancedMovieDetails & 
     console.error('Error fetching movie details:', error)
     return null
   }
-}
+})
 
 async function getInitialRatings(movie: TMDBEnhancedMovieDetails): Promise<MovieRatings> {
   const ratings: MovieRatings = {}

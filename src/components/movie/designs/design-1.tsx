@@ -408,6 +408,8 @@ export default function Design1({
                       ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/50"
                       : "bg-zinc-800/60 text-zinc-200 border border-zinc-700 hover:bg-zinc-700/60"
                   )}
+                  aria-label={isFollowingTheatrical ? 'Unfollow theatrical release' : 'Follow theatrical release'}
+                  aria-pressed={isFollowingTheatrical}
                 >
                   <ParticleBurst active={burstTheatrical} color="yellow" />
 
@@ -443,6 +445,8 @@ export default function Design1({
                       ? "bg-amber-500/20 text-amber-400 border border-amber-500/50 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/50"
                       : "bg-zinc-800/60 text-zinc-200 border border-zinc-700 hover:bg-zinc-700/60"
                   )}
+                  aria-label={isFollowingStreaming ? 'Unfollow streaming release' : 'Follow streaming release'}
+                  aria-pressed={isFollowingStreaming}
                 >
                   <ParticleBurst active={burstStreaming} color="amber" />
 
@@ -474,6 +478,7 @@ export default function Design1({
                     onClick={handleAnimatedFollow}
                     disabled={followLoading}
                     className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer overflow-visible bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-400 border border-yellow-500/40 hover:from-yellow-500/30 hover:to-amber-500/30 active:scale-95"
+                    aria-label="Follow both theatrical and streaming releases"
                   >
                     <ParticleBurst active={burstBoth} color="yellow" />
                     <Plus className="h-3.5 w-3.5" />
@@ -492,8 +497,9 @@ export default function Design1({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500"
+                    aria-label="Open where to watch on TMDB (opens in new tab)"
                   >
-                    <ExternalLink className="h-3.5 w-3.5" />
+                    <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Where to Watch</span>
                   </a>
                 )}
@@ -509,8 +515,9 @@ export default function Design1({
                     }}
                     disabled={followLoading}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer bg-zinc-800/60 text-zinc-300 border border-zinc-700 hover:bg-zinc-700/60"
+                    aria-label="Unfollow all releases for this movie"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Unfollow</span>
                   </button>
                 )}
@@ -527,6 +534,8 @@ export default function Design1({
                 <button
                   onClick={() => setIsOverviewExpanded(!isOverviewExpanded)}
                   className="text-sm font-medium text-yellow-400 hover:text-yellow-300 transition-colors mt-3 cursor-pointer"
+                  aria-label={isOverviewExpanded ? 'Collapse plot summary' : 'Expand plot summary'}
+                  aria-expanded={isOverviewExpanded}
                 >
                   {isOverviewExpanded ? 'Show less' : 'Read more'}
                 </button>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { TMDBEnhancedMovieDetails, UnifiedReleaseDates, FollowType, MovieRatings } from '@/types/movie'
 
@@ -43,14 +43,30 @@ export default function MovieDetailsSwitcher({ movie, initialRatings, initialDes
   const [ratings, setRatings] = useState<MovieRatings>(initialRatings)
   const [ratingsLoading, setRatingsLoading] = useState(false)
 
+  // Define loadFollowStatus before the useEffect that uses it
+  const loadFollowStatus = useCallback(async () => {
+    try {
+      const follows = await getUserFollows() as FollowRecord[]
+      const movieFollows = follows
+        .filter((f) => f.movies.id === movie.id)
+        .map((f) => f.follow_type)
+      setFollowTypes(movieFollows)
+    } catch (error) {
+      console.error('Error loading follow status:', error)
+    }
+  }, [getUserFollows, movie.id])
+
   useEffect(() => {
     if (isAuthenticated) {
       loadFollowStatus()
     }
-  }, [isAuthenticated, movie.id])
+  }, [isAuthenticated, loadFollowStatus])
 
   // Fetch OMDB ratings client-side if they weren't included in initial render
   useEffect(() => {
+    const abortController = new AbortController()
+    let isMounted = true
+
     const fetchOMDBRatings = async () => {
       if (!movie.external_ids?.imdb_id) return
 
@@ -62,14 +78,19 @@ export default function MovieDetailsSwitcher({ movie, initialRatings, initialDes
       }
 
       console.log('[CLIENT] Fetching OMDB ratings...')
-      setRatingsLoading(true)
+      if (isMounted) setRatingsLoading(true)
+
       try {
         const response = await fetch(
-          `/api/movies/${movie.id}/ratings?imdbId=${movie.external_ids.imdb_id}`
+          `/api/movies/${movie.id}/ratings?imdbId=${movie.external_ids.imdb_id}`,
+          { signal: abortController.signal }
         )
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+
         const data = await response.json()
 
-        if (data.ratings) {
+        if (data.ratings && isMounted) {
           console.log('[CLIENT] OMDB ratings loaded')
           setRatings(prev => ({
             ...prev,
@@ -77,47 +98,44 @@ export default function MovieDetailsSwitcher({ movie, initialRatings, initialDes
           }))
         }
       } catch (error) {
-        console.error('Error fetching OMDB ratings:', error)
+        // Only log errors if not aborted
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Error fetching OMDB ratings:', error)
+        }
       } finally {
-        setRatingsLoading(false)
+        if (isMounted) setRatingsLoading(false)
       }
     }
 
     fetchOMDBRatings()
+
+    // Cleanup function to prevent memory leaks
+    return () => {
+      isMounted = false
+      abortController.abort()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [movie.id, movie.external_ids?.imdb_id])
 
-  const loadFollowStatus = async () => {
-    try {
-      const follows = await getUserFollows() as FollowRecord[]
-      const movieFollows = follows
-        .filter((f) => f.movies.id === movie.id)
-        .map((f) => f.follow_type)
-      setFollowTypes(movieFollows)
-    } catch (error) {
-      console.error('Error loading follow status:', error)
-    }
-  }
-
-  const handleFollow = async (_movieId: number, followType: FollowType) => {
+  const handleFollow = useCallback(async (_movieId: number, followType: FollowType) => {
     try {
       await followMovie(movie.id, followType)
       setFollowTypes(prev => [...prev, followType])
     } catch (error) {
       console.error('Error following movie:', error)
     }
-  }
+  }, [followMovie, movie.id])
 
-  const handleUnfollow = async (_movieId: number, followType: FollowType) => {
+  const handleUnfollow = useCallback(async (_movieId: number, followType: FollowType) => {
     try {
       await unfollowMovie(movie.id, followType)
       setFollowTypes(prev => prev.filter(t => t !== followType))
     } catch (error) {
       console.error('Error unfollowing movie:', error)
     }
-  }
+  }, [unfollowMovie, movie.id])
 
-  const handleToggleFollow = async (_movieId: number, followType: FollowType) => {
+  const handleToggleFollow = useCallback(async (_movieId: number, followType: FollowType) => {
     const isFollowingBoth = followTypes.includes('BOTH')
     const isFollowingTheatrical = followTypes.includes('THEATRICAL') || isFollowingBoth
     const isFollowingStreaming = followTypes.includes('STREAMING') || isFollowingBoth
@@ -168,9 +186,9 @@ export default function MovieDetailsSwitcher({ movie, initialRatings, initialDes
       // Reload follow status on error
       loadFollowStatus()
     }
-  }
+  }, [followTypes, followMovie, unfollowMovie, movie.id, loadFollowStatus])
 
-  const switchDesign = (designId: string) => {
+  const switchDesign = useCallback((designId: string) => {
     const params = new URLSearchParams(searchParams.toString())
     if (designId === '1') {
       params.delete('design') // Default design doesn't need param
@@ -179,7 +197,7 @@ export default function MovieDetailsSwitcher({ movie, initialRatings, initialDes
     }
     const query = params.toString()
     router.push(`/movie/${movie.id}${query ? `?${query}` : ''}`)
-  }
+  }, [searchParams, router, movie.id])
 
   // Get the current design component
   const design = DESIGNS.find(d => d.id === currentDesign) || DESIGNS[0]
@@ -196,20 +214,27 @@ export default function MovieDetailsSwitcher({ movie, initialRatings, initialDes
           size="sm"
           onClick={() => setShowPicker(!showPicker)}
           className="gap-2 bg-background/95 backdrop-blur"
+          aria-label="Choose design theme"
+          aria-expanded={showPicker}
         >
-          <Palette className="h-4 w-4" />
+          <Palette className="h-4 w-4" aria-hidden="true" />
           <span className="hidden sm:inline">Design</span>
         </Button>
 
         {showPicker && (
-          <Card className="absolute top-12 right-0 w-72 p-2 bg-background/95 backdrop-blur">
+          <Card className="absolute top-12 right-0 w-72 p-2 bg-background/95 backdrop-blur" role="dialog" aria-label="Design picker">
             <div className="flex items-center justify-between mb-2 pb-2 border-b">
               <span className="text-sm font-semibold">Choose Design</span>
-              <Button variant="ghost" size="sm" onClick={() => setShowPicker(false)}>
-                <X className="h-4 w-4" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPicker(false)}
+                aria-label="Close design picker"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1" role="list">
               {DESIGNS.map((d) => (
                 <button
                   key={d.id}
@@ -220,6 +245,9 @@ export default function MovieDetailsSwitcher({ movie, initialRatings, initialDes
                   className={`w-full text-left p-2 rounded hover:bg-accent transition-colors ${
                     currentDesign === d.id ? 'bg-accent' : ''
                   }`}
+                  aria-label={`Select ${d.name} design`}
+                  aria-current={currentDesign === d.id ? 'true' : undefined}
+                  role="listitem"
                 >
                   <div className="font-semibold text-sm">{d.name}</div>
                   <div className="text-xs text-muted-foreground">{d.description}</div>
