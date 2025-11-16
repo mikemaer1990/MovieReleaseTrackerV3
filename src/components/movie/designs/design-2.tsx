@@ -53,6 +53,45 @@ export default function Design2({
   const isFollowingTheatrical = followTypes.includes('THEATRICAL') || isFollowingBoth
   const isFollowingStreaming = followTypes.includes('STREAMING') || isFollowingBoth
 
+  // Calculate combined rating from all available sources
+  const combinedRating = useMemo(() => {
+    const scores: number[] = []
+
+    // TMDB (already on 10-point scale)
+    if (ratings.tmdb?.score) {
+      scores.push(ratings.tmdb.score)
+    }
+
+    // IMDb (format: "8.5/10" - convert to number)
+    if (ratings.imdb?.score) {
+      const imdbScore = parseFloat(ratings.imdb.score.split('/')[0])
+      if (!isNaN(imdbScore)) {
+        scores.push(imdbScore)
+      }
+    }
+
+    // Rotten Tomatoes (format: "85%" - convert to 10-point scale)
+    if (ratings.rottenTomatoes?.score) {
+      const rtScore = parseFloat(ratings.rottenTomatoes.score.replace('%', ''))
+      if (!isNaN(rtScore)) {
+        scores.push(rtScore / 10)
+      }
+    }
+
+    // Metacritic (format: "75/100" - convert to 10-point scale)
+    if (ratings.metacritic?.score) {
+      const metaScore = parseFloat(ratings.metacritic.score.split('/')[0])
+      if (!isNaN(metaScore)) {
+        scores.push(metaScore / 10)
+      }
+    }
+
+    // Calculate average
+    if (scores.length === 0) return null
+    const average = scores.reduce((sum, score) => sum + score, 0) / scores.length
+    return average
+  }, [ratings])
+
   const posterUrl = movie.poster_path
     ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
     : null
@@ -142,16 +181,16 @@ export default function Design2({
             {/* Rating Box - IMDb Style */}
             <div className="bg-zinc-900 border border-zinc-800 rounded p-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-zinc-400">IMDb RATING</span>
+                <span className="text-sm text-zinc-400">COMBINED RATING</span>
               </div>
               <div className="flex items-center gap-3">
                 <Star className="h-8 w-8 fill-yellow-400 text-yellow-400" />
                 <div>
                   <div className="text-3xl font-bold">
-                    {movie.vote_average > 0 ? movie.vote_average.toFixed(1) : 'N/A'}
+                    {combinedRating !== null ? combinedRating.toFixed(1) : 'N/A'}
                   </div>
                   <div className="text-xs text-zinc-400">
-                    {movie.vote_count.toLocaleString()} votes
+                    Average of available ratings
                   </div>
                 </div>
               </div>

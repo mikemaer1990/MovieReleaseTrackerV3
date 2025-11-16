@@ -60,6 +60,45 @@ export default function Design1({
   const isFollowingTheatrical = followTypes.includes('THEATRICAL') || isFollowingBoth
   const isFollowingStreaming = followTypes.includes('STREAMING') || isFollowingBoth
 
+  // Calculate combined rating from all available sources
+  const combinedRating = useMemo(() => {
+    const scores: number[] = []
+
+    // TMDB (already on 10-point scale)
+    if (ratings.tmdb?.score) {
+      scores.push(ratings.tmdb.score)
+    }
+
+    // IMDb (format: "8.5/10" - convert to number)
+    if (ratings.imdb?.score) {
+      const imdbScore = parseFloat(ratings.imdb.score.split('/')[0])
+      if (!isNaN(imdbScore)) {
+        scores.push(imdbScore)
+      }
+    }
+
+    // Rotten Tomatoes (format: "85%" - convert to 10-point scale)
+    if (ratings.rottenTomatoes?.score) {
+      const rtScore = parseFloat(ratings.rottenTomatoes.score.replace('%', ''))
+      if (!isNaN(rtScore)) {
+        scores.push(rtScore / 10)
+      }
+    }
+
+    // Metacritic (format: "75/100" - convert to 10-point scale)
+    if (ratings.metacritic?.score) {
+      const metaScore = parseFloat(ratings.metacritic.score.split('/')[0])
+      if (!isNaN(metaScore)) {
+        scores.push(metaScore / 10)
+      }
+    }
+
+    // Calculate average
+    if (scores.length === 0) return null
+    const average = scores.reduce((sum, score) => sum + score, 0) / scores.length
+    return average
+  }, [ratings])
+
   const backdropUrl = movie.backdrop_path
     ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
     : null
@@ -242,17 +281,17 @@ export default function Design1({
             )}
 
             {/* Rating Box */}
-            {movie.vote_average > 0 && (
+            {combinedRating !== null && (
               <div className="bg-zinc-900/60 backdrop-blur-md border border-zinc-800 rounded-lg p-4">
-                <div className="text-xs text-zinc-400 uppercase tracking-wide mb-3">Rating</div>
+                <div className="text-xs text-zinc-400 uppercase tracking-wide mb-3">Combined Rating</div>
                 <div className="flex items-center gap-3">
                   <Star className="h-8 w-8 fill-yellow-400 text-yellow-400" />
                   <div>
                     <div className="text-3xl font-bold text-zinc-100">
-                      {movie.vote_average.toFixed(1)}
+                      {combinedRating.toFixed(1)}
                     </div>
                     <div className="text-xs text-zinc-400">
-                      {movie.vote_count.toLocaleString()} votes
+                      Average of available ratings
                     </div>
                   </div>
                 </div>
