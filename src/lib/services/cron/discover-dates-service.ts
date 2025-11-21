@@ -149,8 +149,12 @@ export class DiscoverDatesService {
           const hadTheatrical = currentUsReleaseDates.some(rd => rd.release_type === 3)
           const hadStreaming = currentUsReleaseDates.some(rd => rd.release_type === 4)
 
-          const hasNewTheatrical = !hadTheatrical && theatricalDate !== null
-          const hasNewStreaming = !hadStreaming && streamingDate !== null
+          // Get current date (in UTC, formatted as YYYY-MM-DD)
+          const today = new Date().toISOString().split('T')[0]
+
+          // Check if dates are new AND in the future (don't notify for past dates)
+          const hasNewTheatrical = !hadTheatrical && theatricalDate !== null && theatricalDate > today
+          const hasNewStreaming = !hadStreaming && streamingDate !== null && streamingDate > today
 
           if (hasNewTheatrical || hasNewStreaming) {
             updatedMovies.set(movieId, {
