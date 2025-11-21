@@ -93,13 +93,13 @@ export async function GET(request: NextRequest) {
 
     // Test 5: Single Release Notification (Theatrical)
     results.push('Test 5: Release Notification - Single Movie (Theatrical)')
-    await emailService.sendReleaseEmail(testUser, sampleMovie, 'THEATRICAL')
+    await emailService.sendReleaseEmail(testUser, sampleMovie, 'theatrical')
     results.push('✅ Test 5 Complete')
     await delay(2000)
 
     // Test 6: Single Release Notification (Streaming)
     results.push('Test 6: Release Notification - Single Movie (Streaming)')
-    await emailService.sendReleaseEmail(testUser, sampleMovie2, 'STREAMING')
+    await emailService.sendReleaseEmail(testUser, sampleMovie2, 'streaming')
     results.push('✅ Test 6 Complete')
     await delay(2000)
 
