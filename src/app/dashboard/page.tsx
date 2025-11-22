@@ -11,6 +11,7 @@ import { Film, Calendar, Star, Search } from 'lucide-react'
 import Link from 'next/link'
 import { MovieService } from '@/lib/services/movie-service'
 import { isStreamingReleased } from '@/lib/utils'
+import { motion, AnimatePresence } from 'framer-motion'
 type FollowType = 'THEATRICAL' | 'STREAMING' | 'BOTH'
 
 interface GroupedMovie {
@@ -253,52 +254,67 @@ export default function Dashboard() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-            {groupedMovies.map((groupedMovie) => {
-              // Transform database movie to TMDB format
-              const tmdbMovie = {
-                id: groupedMovie.movies.id,
-                title: groupedMovie.movies.title,
-                poster_path: groupedMovie.movies.poster_path,
-                release_date: groupedMovie.movies.release_date || '',
-                vote_average: groupedMovie.movies.vote_average || 0,
-                overview: groupedMovie.movies.overview || '',
-                backdrop_path: null,
-                genre_ids: [],
-                popularity: groupedMovie.movies.popularity || 0,
-                vote_count: 0,
-                adult: false,
-                original_language: '',
-                original_title: groupedMovie.movies.title,
-              }
+            <AnimatePresence mode="popLayout">
+              {groupedMovies.map((groupedMovie) => {
+                // Transform database movie to TMDB format
+                const tmdbMovie = {
+                  id: groupedMovie.movies.id,
+                  title: groupedMovie.movies.title,
+                  poster_path: groupedMovie.movies.poster_path,
+                  release_date: groupedMovie.movies.release_date || '',
+                  vote_average: groupedMovie.movies.vote_average || 0,
+                  overview: groupedMovie.movies.overview || '',
+                  backdrop_path: null,
+                  genre_ids: [],
+                  popularity: groupedMovie.movies.popularity || 0,
+                  vote_count: 0,
+                  adult: false,
+                  original_language: '',
+                  original_title: groupedMovie.movies.title,
+                }
 
-              // Build unified dates from database release_dates
-              const dbReleaseDates = groupedMovie.movies.release_dates?.map(rd => ({
-                id: rd.id,
-                movieId: rd.movie_id,
-                country: rd.country,
-                releaseType: rd.release_type,
-                releaseDate: rd.release_date,
-                certification: rd.certification,
-                createdAt: new Date(rd.created_at)
-              }))
-              const unifiedDates = MovieService.buildUnifiedDatesFromDB(dbReleaseDates)
+                // Build unified dates from database release_dates
+                const dbReleaseDates = groupedMovie.movies.release_dates?.map(rd => ({
+                  id: rd.id,
+                  movieId: rd.movie_id,
+                  country: rd.country,
+                  releaseType: rd.release_type,
+                  releaseDate: rd.release_date,
+                  certification: rd.certification,
+                  createdAt: new Date(rd.created_at)
+                }))
+                const unifiedDates = MovieService.buildUnifiedDatesFromDB(dbReleaseDates)
 
-              // Check if movie is released on streaming
-              const isReleased = isStreamingReleased({ unifiedDates })
+                // Check if movie is released on streaming
+                const isReleased = isStreamingReleased({ unifiedDates })
 
-              return (
-                <MovieCard
-                  key={groupedMovie.movies.id}
-                  movie={tmdbMovie}
-                  onFollow={handleFollow}
-                  onUnfollow={handleUnfollow}
-                  followTypes={groupedMovie.followTypes}
-                  loading={loading}
-                  unifiedDates={unifiedDates}
-                  className={!isReleased ? "ring-2 ring-primary/20 bg-primary/5" : undefined}
-                />
-              )
-            })}
+                return (
+                  <motion.div
+                    key={groupedMovie.movies.id}
+                    layout
+                    initial={{ opacity: 1, scale: 1 }}
+                    exit={{
+                      scale: 0,
+                      opacity: 0,
+                    }}
+                    transition={{
+                      duration: 0.3,
+                      ease: [0.4, 0, 0.2, 1], // Material Design easing curve
+                    }}
+                  >
+                    <MovieCard
+                      movie={tmdbMovie}
+                      onFollow={handleFollow}
+                      onUnfollow={handleUnfollow}
+                      followTypes={groupedMovie.followTypes}
+                      loading={loading}
+                      unifiedDates={unifiedDates}
+                      className={!isReleased ? "ring-2 ring-primary/20 bg-primary/5" : undefined}
+                    />
+                  </motion.div>
+                )
+              })}
+            </AnimatePresence>
           </div>
         )}
       </div>

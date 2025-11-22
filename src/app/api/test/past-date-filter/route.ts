@@ -3,7 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 /**
  * Test Past Date Filtering Logic
  *
- * Verifies that the fix correctly filters out past dates
+ * Verifies the improved logic:
+ * - ALL new dates get added to database (past or future)
+ * - ONLY future dates trigger notifications
  *
  * Usage: GET http://localhost:3010/api/test/past-date-filter
  */
@@ -14,40 +16,45 @@ export async function GET(request: NextRequest) {
       today: '2025-11-18',
       discoveredDate: '2025-11-17',
       hadDate: false,
-      expectedResult: false,
-      reason: 'Date is in the past'
+      expectedDatabaseUpdate: true,  // Should update DB
+      expectedNotification: false,   // Should NOT notify
+      reason: 'Past date: Update DB for historical accuracy, but do not notify user'
     },
     {
       name: 'Future date (Dec 25 discovered on Nov 18)',
       today: '2025-11-18',
       discoveredDate: '2025-12-25',
       hadDate: false,
-      expectedResult: true,
-      reason: 'Date is in the future'
+      expectedDatabaseUpdate: true,  // Should update DB
+      expectedNotification: true,    // Should notify
+      reason: 'Future date: Update DB and notify user'
     },
     {
       name: 'Same day (Nov 18 discovered on Nov 18)',
       today: '2025-11-18',
       discoveredDate: '2025-11-18',
       hadDate: false,
-      expectedResult: false,
-      reason: 'Date is today (not greater than today)'
+      expectedDatabaseUpdate: true,  // Should update DB
+      expectedNotification: false,   // Should NOT notify (not > today)
+      reason: 'Same-day date: Update DB but do not notify (date is not in future)'
     },
     {
       name: 'Already had date',
       today: '2025-11-18',
       discoveredDate: '2025-12-25',
       hadDate: true,
-      expectedResult: false,
-      reason: 'Database already has this date'
+      expectedDatabaseUpdate: false, // Should NOT update (already exists)
+      expectedNotification: false,   // Should NOT notify (not new)
+      reason: 'Database already has this date, skip entirely'
     },
     {
       name: 'Far future date',
       today: '2025-11-18',
       discoveredDate: '2026-06-15',
       hadDate: false,
-      expectedResult: true,
-      reason: 'Date is in the far future'
+      expectedDatabaseUpdate: true,  // Should update DB
+      expectedNotification: true,    // Should notify
+      reason: 'Far future date: Update DB and notify user'
     }
   ]
 
@@ -55,14 +62,20 @@ export async function GET(request: NextRequest) {
   let allPassed = true
 
   for (const test of testCases) {
-    // Simulate the FIXED logic from discover-dates-service.ts
+    // Simulate the IMPROVED logic from discover-dates-service.ts
     const today = test.today
     const hadStreaming = test.hadDate
     const streamingDate = test.discoveredDate
 
-    const hasNewStreaming = !hadStreaming && streamingDate !== null && streamingDate > today
+    // Step 1: Check if date is NEW (regardless of past/future)
+    const hasNewStreaming = !hadStreaming && streamingDate !== null
 
-    const passed = hasNewStreaming === test.expectedResult
+    // Step 2: Check if new date is in the FUTURE (for notifications)
+    const shouldNotifyStreaming = hasNewStreaming && streamingDate > today
+
+    const dbUpdatePassed = hasNewStreaming === test.expectedDatabaseUpdate
+    const notificationPassed = shouldNotifyStreaming === test.expectedNotification
+    const passed = dbUpdatePassed && notificationPassed
 
     if (!passed) {
       allPassed = false
@@ -73,8 +86,10 @@ export async function GET(request: NextRequest) {
       today: test.today,
       discoveredDate: test.discoveredDate,
       alreadyHadDate: test.hadDate,
-      expectedResult: test.expectedResult,
-      actualResult: hasNewStreaming,
+      expectedDatabaseUpdate: test.expectedDatabaseUpdate,
+      actualDatabaseUpdate: hasNewStreaming,
+      expectedNotification: test.expectedNotification,
+      actualNotification: shouldNotifyStreaming,
       passed,
       reason: test.reason
     })
@@ -83,7 +98,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     success: allPassed,
     message: allPassed
-      ? '✅ All tests passed! Past date filtering is working correctly.'
+      ? '✅ All tests passed! Database updates and notification logic working correctly.'
       : '❌ Some tests failed. Check results for details.',
     totalTests: testCases.length,
     passedTests: results.filter(r => r.passed).length,

@@ -152,20 +152,16 @@ export class DiscoverDatesService {
           // Get current date (in UTC, formatted as YYYY-MM-DD)
           const today = new Date().toISOString().split('T')[0]
 
-          // Check if dates are new AND in the future (don't notify for past dates)
-          const hasNewTheatrical = !hadTheatrical && theatricalDate !== null && theatricalDate > today
-          const hasNewStreaming = !hadStreaming && streamingDate !== null && streamingDate > today
+          // Step 1: Check if dates are NEW (regardless of past/future)
+          const hasNewTheatrical = !hadTheatrical && theatricalDate !== null
+          const hasNewStreaming = !hadStreaming && streamingDate !== null
 
+          // Step 2: Check if new dates are in the FUTURE (for notifications)
+          const shouldNotifyTheatrical = hasNewTheatrical && theatricalDate > today
+          const shouldNotifyStreaming = hasNewStreaming && streamingDate > today
+
+          // Step 3: Update database with ALL new dates (past or future)
           if (hasNewTheatrical || hasNewStreaming) {
-            updatedMovies.set(movieId, {
-              movieId,
-              title: movieDetails.title,
-              posterPath: movieDetails.poster_path,
-              theatricalDate: hasNewTheatrical ? theatricalDate : null,
-              streamingDate: hasNewStreaming ? streamingDate : null
-            })
-
-            // Step 5: Update release_dates table
             const releaseDateRecords = []
 
             if (hasNewTheatrical && theatricalDate) {
@@ -199,6 +195,17 @@ export class DiscoverDatesService {
               } else {
                 datesDiscovered += releaseDateRecords.length
               }
+            }
+
+            // Step 4: Only add to notification queue if dates are in the FUTURE
+            if (shouldNotifyTheatrical || shouldNotifyStreaming) {
+              updatedMovies.set(movieId, {
+                movieId,
+                title: movieDetails.title,
+                posterPath: movieDetails.poster_path,
+                theatricalDate: shouldNotifyTheatrical ? theatricalDate : null,
+                streamingDate: shouldNotifyStreaming ? streamingDate : null
+              })
             }
           }
 
