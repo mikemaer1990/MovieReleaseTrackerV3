@@ -5,14 +5,36 @@ import { Movie } from '@/types/movie'
 /**
  * Test endpoint to send sample emails
  *
+ * SECURITY:
+ * - Only works in development mode (NODE_ENV !== 'production')
+ * - Protected by CRON_SECRET authorization header
+ *
  * Usage:
  * GET /api/test/send-email?type=single-date&email=your@email.com
- * GET /api/test/send-email?type=batch-date&email=your@email.com
- * GET /api/test/send-email?type=single-release&email=your@email.com
- * GET /api/test/send-email?type=batch-release&email=your@email.com
- * GET /api/test/send-email?type=test&email=your@email.com
+ * Headers: Authorization: Bearer YOUR_CRON_SECRET
+ *
+ * Types: test, single-date, batch-date, single-release, batch-release
  */
 export async function GET(request: NextRequest) {
+  // Block in production
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { success: false, error: 'Test endpoints are disabled in production' },
+      { status: 403 }
+    )
+  }
+
+  // Check authorization
+  const authHeader = request.headers.get('authorization')
+  const token = authHeader?.replace('Bearer ', '')
+
+  if (!process.env.CRON_SECRET || token !== process.env.CRON_SECRET) {
+    return NextResponse.json(
+      { success: false, error: 'Unauthorized' },
+      { status: 401 }
+    )
+  }
+
   try {
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type')

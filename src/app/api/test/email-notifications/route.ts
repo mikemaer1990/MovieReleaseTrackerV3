@@ -6,12 +6,50 @@ import { emailService } from '@/lib/services/email-service'
  *
  * Comprehensive test of all email notification types
  *
+ * SECURITY:
+ * - Only works in development mode (NODE_ENV !== 'production')
+ * - Requires TEST_EMAIL environment variable to be set
+ * - Protected by CRON_SECRET authorization header
+ *
  * Usage: GET http://localhost:3010/api/test/email-notifications
+ * Headers: Authorization: Bearer YOUR_CRON_SECRET
  */
 export async function GET(request: NextRequest) {
+  // Block in production
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { success: false, error: 'Test endpoints are disabled in production' },
+      { status: 403 }
+    )
+  }
+
+  // Check authorization
+  const authHeader = request.headers.get('authorization')
+  const token = authHeader?.replace('Bearer ', '')
+
+  if (!process.env.CRON_SECRET || token !== process.env.CRON_SECRET) {
+    return NextResponse.json(
+      { success: false, error: 'Unauthorized' },
+      { status: 401 }
+    )
+  }
+
+  // Get test email from environment variable
+  const testEmail = process.env.TEST_EMAIL
+  if (!testEmail) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'TEST_EMAIL environment variable not configured',
+        hint: 'Add TEST_EMAIL=your-email@example.com to .env.local'
+      },
+      { status: 500 }
+    )
+  }
+
   const testUser = {
-    email: 'mikemaer1990@gmail.com',
-    name: 'Mike'
+    email: testEmail,
+    name: process.env.TEST_USER_NAME || 'Test User'
   }
 
   const sampleMovie = {
