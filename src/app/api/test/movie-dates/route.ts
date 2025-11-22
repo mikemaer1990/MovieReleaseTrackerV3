@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     movie,
-    usReleaseDates: movie?.release_dates?.filter((rd: any) => rd.country === 'US'),
+    usReleaseDates: movie?.release_dates?.filter((rd: { country: string }) => rd.country === 'US'),
     today: new Date().toISOString().split('T')[0]
   }, { status: 200 })
 }
