@@ -524,6 +524,31 @@ export default function Design1({
               </div>
             )}
 
+            {/* Release Dates - Simple Info Display */}
+            {(movie.unifiedDates.usTheatrical || movie.unifiedDates.streaming) && (
+              <div className="text-sm text-zinc-400">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                  {movie.unifiedDates.usTheatrical && (
+                    <span className="flex items-center gap-2">
+                      <Film className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span className="text-zinc-500">Theatrical</span>
+                      <span className="text-zinc-300">{formatDate(movie.unifiedDates.usTheatrical)}</span>
+                    </span>
+                  )}
+                  {movie.unifiedDates.usTheatrical && movie.unifiedDates.streaming && (
+                    <span className="hidden sm:inline text-zinc-700" aria-hidden="true">|</span>
+                  )}
+                  {movie.unifiedDates.streaming && (
+                    <span className="flex items-center gap-2">
+                      <Tv className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span className="text-zinc-500">Streaming</span>
+                      <span className="text-zinc-300">{formatDate(movie.unifiedDates.streaming)}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Plot Summary */}
             <div className="bg-zinc-900/40 backdrop-blur-md border border-zinc-800 rounded-lg p-5">
               <h2 className="text-xl font-bold mb-3 text-zinc-100">Plot Summary</h2>
