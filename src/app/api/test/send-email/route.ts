@@ -13,7 +13,7 @@ import { Movie } from '@/types/movie'
  * GET /api/test/send-email?type=single-date&email=your@email.com
  * Headers: Authorization: Bearer YOUR_CRON_SECRET
  *
- * Types: test, single-date, batch-date, single-release, batch-release
+ * Types: test, single-date, batch-date, single-release, batch-release, cache-failure
  */
 export async function GET(request: NextRequest) {
   // Block in production
@@ -140,10 +140,52 @@ export async function GET(request: NextRequest) {
           message: 'Batch release email sent successfully'
         })
 
+      case 'cache-failure':
+        await emailService.sendAdminNotification(
+          email,
+          '⚠️ Cache Refresh Failed - Movie Release Tracker',
+          `
+            <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #0f0f0f; color: #ffffff; padding: 40px 20px;">
+              <div style="max-width: 600px; margin: 0 auto; background-color: #1a1a1a; border-radius: 12px; overflow: hidden; border: 1px solid #2a2a2a;">
+                <div style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 30px; text-align: center;">
+                  <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">⚠️ Cache Refresh Failed</h1>
+                </div>
+                <div style="padding: 30px;">
+                  <p style="color: #e5e5e5; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
+                    The automated cache refresh job encountered an error and could not complete successfully.
+                  </p>
+                  <div style="background-color: #2a2a2a; border-left: 4px solid #dc2626; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                    <p style="color: #f87171; font-size: 14px; margin: 0; font-weight: 500;">
+                      Error: Failed to fetch upcoming movies from TMDB API
+                    </p>
+                  </div>
+                  <div style="margin: 25px 0;">
+                    <p style="color: #a3a3a3; font-size: 14px; margin: 0 0 10px;"><strong>Job:</strong> refresh-cache</p>
+                    <p style="color: #a3a3a3; font-size: 14px; margin: 0 0 10px;"><strong>Time:</strong> ${new Date().toISOString()}</p>
+                    <p style="color: #a3a3a3; font-size: 14px; margin: 0;"><strong>Environment:</strong> ${process.env.NODE_ENV || 'development'}</p>
+                  </div>
+                  <p style="color: #e5e5e5; font-size: 14px; line-height: 1.6; margin: 20px 0 0;">
+                    Please investigate the issue and manually trigger the cache refresh if necessary.
+                  </p>
+                </div>
+                <div style="background-color: #0f0f0f; padding: 20px; text-align: center; border-top: 1px solid #2a2a2a;">
+                  <p style="color: #737373; font-size: 12px; margin: 0;">
+                    Movie Release Tracker - System Notification
+                  </p>
+                </div>
+              </div>
+            </div>
+          `
+        )
+        return NextResponse.json({
+          success: true,
+          message: 'Cache failure notification email sent successfully'
+        })
+
       default:
         return NextResponse.json(
           {
-            error: 'Invalid type parameter. Use: test, single-date, batch-date, single-release, or batch-release'
+            error: 'Invalid type parameter. Use: test, single-date, batch-date, single-release, batch-release, or cache-failure'
           },
           { status: 400 }
         )
