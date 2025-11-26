@@ -4,7 +4,8 @@ import {
   buildSingleDateDiscoveredEmail,
   buildBatchDateDiscoveredEmail,
   buildSingleReleaseEmail,
-  buildBatchReleaseEmail
+  buildBatchReleaseEmail,
+  buildPasswordResetEmail
 } from './email-templates'
 
 interface User {
@@ -178,6 +179,32 @@ class EmailService {
       console.log(`[EmailService] Sent admin notification to ${toEmail}`)
     } catch (error) {
       console.error(`[EmailService] Failed to send admin notification to ${toEmail}:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Send password reset email
+   */
+  async sendPasswordResetEmail(
+    user: User,
+    resetToken: string
+  ): Promise<void> {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3010'
+    const resetUrl = `${appUrl}/auth/reset-password?token=${resetToken}`
+    const htmlContent = buildPasswordResetEmail(user, resetUrl)
+
+    const sendSmtpEmail = new SendSmtpEmail()
+    sendSmtpEmail.sender = { name: this.senderName, email: this.senderEmail }
+    sendSmtpEmail.to = [{ email: user.email, name: user.name || undefined }]
+    sendSmtpEmail.subject = 'Reset Your Password - Movie Release Tracker'
+    sendSmtpEmail.htmlContent = htmlContent
+
+    try {
+      await this.apiInstance.sendTransacEmail(sendSmtpEmail)
+      console.log(`[EmailService] Sent password reset email to ${user.email}`)
+    } catch (error) {
+      console.error(`[EmailService] Failed to send password reset email to ${user.email}:`, error)
       throw error
     }
   }

@@ -356,3 +356,66 @@ export function buildBatchReleaseEmail(
     bodyContent
   )
 }
+
+/**
+ * Template: Password Reset Email
+ */
+export function buildPasswordResetEmail(
+  user: User,
+  resetUrl: string
+): string {
+  const userName = user.name || user.email.split('@')[0]
+
+  const bodyContent = `
+<div style="color: #ededed;">
+  <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6;">
+    Hi ${userName},
+  </p>
+  <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6;">
+    We received a request to reset your password for your Movie Release Tracker account.
+  </p>
+  <p style="margin: 0 0 32px 0; font-size: 16px; line-height: 1.6;">
+    Click the button below to create a new password:
+  </p>
+
+  <!-- Reset Button -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding-bottom: 32px;">
+        <a href="${resetUrl}" style="display: inline-block; padding: 16px 48px; background-color: #f3d96b; color: #0a0a0a; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; box-shadow: 0 0 20px rgba(243, 217, 107, 0.4); transition: all 0.2s;">
+          Reset Password
+        </a>
+      </td>
+    </tr>
+  </table>
+
+  <div style="margin: 0 0 24px 0; padding: 20px; background-color: #262626; border-radius: 8px; border-left: 4px solid #f3d96b;">
+    <p style="margin: 0 0 8px 0; font-size: 14px; color: #f3d96b; font-weight: 600;">
+      ⏰ This link expires in 1 hour
+    </p>
+    <p style="margin: 0; font-size: 14px; color: #a3a3a3; line-height: 1.6;">
+      For security reasons, this password reset link will only be valid for 1 hour.
+    </p>
+  </div>
+
+  <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.6; color: #a3a3a3;">
+    If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
+  </p>
+
+  <!-- Alternative Link Section -->
+  <div style="margin: 32px 0 0 0; padding: 20px; background-color: #0f0f0f; border-radius: 8px; border: 1px solid #262626;">
+    <p style="margin: 0 0 12px 0; font-size: 13px; color: #a3a3a3;">
+      Button not working? Copy and paste this link into your browser:
+    </p>
+    <p style="margin: 0; font-size: 12px; color: #f3d96b; word-break: break-all; font-family: 'Courier New', monospace;">
+      ${resetUrl}
+    </p>
+  </div>
+</div>`
+
+  return getBaseLayout(
+    'Reset Your Password',
+    'Click the button below to create a new password',
+    bodyContent
+  )
+}
