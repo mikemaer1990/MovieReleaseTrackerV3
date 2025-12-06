@@ -111,7 +111,9 @@ class RecentCacheService {
       const voteCountMin = this.DEFAULT_VOTE_COUNT_MIN
       const voteAverageMin = this.DEFAULT_VOTE_AVERAGE_MIN
 
-      // Calculate cutoff date
+      // Calculate cutoff date and today's date
+      const today = new Date()
+      const todayString = today.toISOString().split('T')[0]
       const cutoffDate = new Date()
       cutoffDate.setDate(cutoffDate.getDate() - daysBack)
       const cutoffDateString = cutoffDate.toISOString().split('T')[0]
@@ -151,7 +153,8 @@ class RecentCacheService {
             return false
           }
 
-          return digitalDate >= cutoffDateString
+          // Only include movies released between cutoff date and today (inclusive)
+          return digitalDate >= cutoffDateString && digitalDate <= todayString
         })
 
         // Move to next page

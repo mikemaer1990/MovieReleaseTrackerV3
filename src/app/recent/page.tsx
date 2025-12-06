@@ -231,18 +231,12 @@ export default function RecentMovies() {
             <h1 className="text-3xl font-bold">Recent Releases</h1>
           </div>
           <p className="text-muted-foreground">
-            Quality digital releases from the last {filters?.daysBack || 90} days
             {pagination && (
-              <span className="ml-2">
-                • {pagination.total_results.toLocaleString()} movies found
-              </span>
+              <>
+                {pagination.total_results.toLocaleString()} movies • Last {filters?.daysBack || 90} days
+              </>
             )}
           </p>
-          {filters && (
-            <p className="text-sm text-muted-foreground mt-1">
-              Minimum rating: {filters.voteAverageMin}/10 • At least {filters.voteCountMin} votes
-            </p>
-          )}
         </div>
 
         <Button
