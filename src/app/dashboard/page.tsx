@@ -84,28 +84,52 @@ export default function Dashboard() {
       }
     })
 
-    // Convert to array and sort by release date (soonest first)
+    // Convert to array and sort intelligently
     const moviesArray = Array.from(movieMap.values())
 
     return moviesArray.sort((a, b) => {
-      // Get US theatrical release date from release_dates if available
-      const getReleaseDate = (movie: GroupedMovie) => {
-        const usTheatrical = movie.movies.release_dates?.find(
-          rd => rd.country === 'US' && rd.release_type === 3 // 3 = Theatrical release
-        )
-        return usTheatrical?.release_date || movie.movies.release_date
+      // Get unified dates and relevant info for both movies
+      const getMovieInfo = (movie: GroupedMovie) => {
+        const dbReleaseDates = movie.movies.release_dates?.map(rd => ({
+          id: rd.id,
+          movieId: rd.movie_id,
+          country: rd.country,
+          releaseType: rd.release_type,
+          releaseDate: rd.release_date,
+          certification: rd.certification,
+          createdAt: new Date(rd.created_at)
+        }))
+        const unifiedDates = MovieService.buildUnifiedDatesFromDB(dbReleaseDates)
+
+        return {
+          streamingDate: unifiedDates?.streaming,
+          theatricalDate: unifiedDates?.usTheatrical || movie.movies.release_date,
+          hasStreaming: !!unifiedDates?.streaming
+        }
       }
 
-      const dateA = getReleaseDate(a)
-      const dateB = getReleaseDate(b)
+      const infoA = getMovieInfo(a)
+      const infoB = getMovieInfo(b)
+
+      // Get the most relevant date for sorting
+      const dateA = infoA.streamingDate || infoA.theatricalDate
+      const dateB = infoB.streamingDate || infoB.theatricalDate
 
       // Handle null/undefined dates (put them at the end)
       if (!dateA && !dateB) return 0
       if (!dateA) return 1
       if (!dateB) return -1
 
-      // Sort by date ascending (soonest first)
-      return new Date(dateA).getTime() - new Date(dateB).getTime()
+      const timeA = new Date(dateA).getTime()
+      const timeB = new Date(dateB).getTime()
+
+      // Prioritize movies with streaming dates over theatrical-only
+      if (infoA.hasStreaming !== infoB.hasStreaming) {
+        return infoA.hasStreaming ? -1 : 1
+      }
+
+      // Within each group (streaming or theatrical), sort chronologically (earliest first)
+      return timeA - timeB
     })
   }
 
@@ -214,7 +238,11 @@ export default function Dashboard() {
           <Star className="h-4 w-4 mr-1.5" />
           {stats.streaming} Streaming
         </Badge>
-        <Badge variant="outline" className="px-3 py-1.5 text-sm bg-emerald-500/10 border-emerald-500/30 text-emerald-400">
+        <Badge variant="outline" className={`px-3 py-1.5 text-sm ${
+          stats.released > 0
+            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+            : 'bg-zinc-800/60 text-zinc-200 border-zinc-700'
+        }`}>
           <Check className="h-4 w-4 mr-1.5" />
           {stats.released} Released
         </Badge>
