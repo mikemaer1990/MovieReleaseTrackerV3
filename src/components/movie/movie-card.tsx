@@ -101,6 +101,13 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
             <span>{movie.vote_average.toFixed(1)}</span>
           </div>
         )}
+
+        {isReleased && (
+          <div className="absolute bottom-2 left-2 bg-emerald-900/80 text-emerald-300 text-xs px-2 py-1 rounded flex items-center space-x-1 border border-emerald-500/30">
+            <Check className="h-3 w-3" />
+            <span className="font-medium">RELEASED</span>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col flex-1 min-w-0">

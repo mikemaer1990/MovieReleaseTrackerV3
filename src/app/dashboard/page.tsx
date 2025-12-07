@@ -7,7 +7,7 @@ import { MovieCard } from '@/components/movie/movie-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Film, Calendar, Star, Search } from 'lucide-react'
+import { Film, Calendar, Star, Search, Check } from 'lucide-react'
 import Link from 'next/link'
 import { MovieService } from '@/lib/services/movie-service'
 import { isStreamingReleased } from '@/lib/utils'
@@ -31,10 +31,10 @@ export default function Dashboard() {
     total: 0,
     theatrical: 0,
     streaming: 0,
+    released: 0,
   })
 
-  const calculateStats = (userFollows: FollowRecord[]) => {
-    const grouped = groupFollowsByMovie(userFollows)
+  const calculateStats = (userFollows: FollowRecord[], grouped: GroupedMovie[]) => {
     const total = grouped.length
 
     const theatrical = grouped.filter((movie: GroupedMovie) =>
@@ -44,8 +44,23 @@ export default function Dashboard() {
     const streaming = grouped.filter((movie: GroupedMovie) =>
       movie.followTypes.some((type: FollowType) => type === 'STREAMING' || type === 'BOTH')
     ).length
-    
-    return { total, theatrical, streaming }
+
+    // Count released movies (movies available on streaming)
+    const released = grouped.filter((movie: GroupedMovie) => {
+      const dbReleaseDates = movie.movies.release_dates?.map(rd => ({
+        id: rd.id,
+        movieId: rd.movie_id,
+        country: rd.country,
+        releaseType: rd.release_type,
+        releaseDate: rd.release_date,
+        certification: rd.certification,
+        createdAt: new Date(rd.created_at)
+      }))
+      const unifiedDates = MovieService.buildUnifiedDatesFromDB(dbReleaseDates)
+      return isStreamingReleased({ unifiedDates })
+    }).length
+
+    return { total, theatrical, streaming, released }
   }
 
   const groupFollowsByMovie = (userFollows: FollowRecord[]) => {
@@ -106,9 +121,9 @@ export default function Dashboard() {
         // Group follows by movie
         const grouped = groupFollowsByMovie(userFollows)
         setGroupedMovies(grouped)
-        
+
         // Calculate and set stats
-        setStats(calculateStats(userFollows))
+        setStats(calculateStats(userFollows, grouped))
       } catch (error) {
         console.error('Error fetching follows:', error)
       } finally {
@@ -125,8 +140,9 @@ export default function Dashboard() {
       // Refresh the follows list after following
       const userFollows = await getUserFollows()
       setFollows(userFollows)
-      setGroupedMovies(groupFollowsByMovie(userFollows))
-      setStats(calculateStats(userFollows))
+      const grouped = groupFollowsByMovie(userFollows)
+      setGroupedMovies(grouped)
+      setStats(calculateStats(userFollows, grouped))
     } catch (error) {
       console.error('Error following movie:', error)
     }
@@ -141,23 +157,26 @@ export default function Dashboard() {
     })
 
     setFollows(updatedFollows)
-    setGroupedMovies(groupFollowsByMovie(updatedFollows))
-    setStats(calculateStats(updatedFollows))
+    const grouped = groupFollowsByMovie(updatedFollows)
+    setGroupedMovies(grouped)
+    setStats(calculateStats(updatedFollows, grouped))
 
     try {
       await unfollowMovie(movieId, followType)
       // Refresh the follows list to ensure consistency
       const userFollows = await getUserFollows()
       setFollows(userFollows)
-      setGroupedMovies(groupFollowsByMovie(userFollows))
-      setStats(calculateStats(userFollows))
+      const grouped = groupFollowsByMovie(userFollows)
+      setGroupedMovies(grouped)
+      setStats(calculateStats(userFollows, grouped))
     } catch (error) {
       console.error('Error unfollowing movie:', error)
       // Revert optimistic update on error
       const userFollows = await getUserFollows()
       setFollows(userFollows)
-      setGroupedMovies(groupFollowsByMovie(userFollows))
-      setStats(calculateStats(userFollows))
+      const grouped = groupFollowsByMovie(userFollows)
+      setGroupedMovies(grouped)
+      setStats(calculateStats(userFollows, grouped))
     }
   }
 
@@ -175,57 +194,35 @@ export default function Dashboard() {
 
   return (
     <div className="py-6 space-y-8">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-primary">My Movie Dashboard</h1>
-          <p className="text-muted-foreground">
-            Manage your followed movies and notification preferences
-          </p>
+      <div className="space-y-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary">My Movie Dashboard</h1>
+        <p className="text-muted-foreground">
+          Manage your followed movies and notification preferences
+        </p>
+
+        {/* Stats Badges */}
+        <div className="flex flex-wrap gap-2 pt-2">
+        <Badge variant="outline" className="px-3 py-1.5 text-sm bg-zinc-800/60 text-zinc-200 border-zinc-700">
+          <Film className="h-4 w-4 mr-1.5" />
+          {stats.total} Total
+        </Badge>
+        <Badge variant="outline" className="px-3 py-1.5 text-sm bg-zinc-800/60 text-zinc-200 border-zinc-700">
+          <Calendar className="h-4 w-4 mr-1.5" />
+          {stats.theatrical} Theater
+        </Badge>
+        <Badge variant="outline" className="px-3 py-1.5 text-sm bg-zinc-800/60 text-zinc-200 border-zinc-700">
+          <Star className="h-4 w-4 mr-1.5" />
+          {stats.streaming} Streaming
+        </Badge>
+        <Badge variant="outline" className="px-3 py-1.5 text-sm bg-emerald-500/10 border-emerald-500/30 text-emerald-400">
+          <Check className="h-4 w-4 mr-1.5" />
+          {stats.released} Released
+        </Badge>
         </div>
-        <Button asChild size="lg" className="shadow-md shrink-0">
-          <Link href="/search" className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Find More Movies
-          </Link>
-        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Followed</CardTitle>
-            <Film className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Theater Releases</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.theatrical}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Streaming Releases</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.streaming}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Followed Movies */}
+      {/* Movies Grid */}
       <div>
-        <h2 className="text-2xl font-semibold mb-6">Your Followed Movies</h2>
         
         {loadingFollows ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
