@@ -20,6 +20,7 @@ interface Follow {
       country: string
       release_type: number
       release_date: string
+      last_validated_at?: string | null
     }>
   }
 }
@@ -40,19 +41,23 @@ interface UserNotification {
 }
 
 /**
- * Date Discovery Cron Job
+ * Date Discovery & Validation Cron Job
  *
- * Runs daily at 3:00 AM to find missing release dates for followed movies.
- * Fetches fresh data from TMDB and notifies users when dates are discovered.
+ * Runs daily at 3:00 AM to:
+ * 1. Find missing release dates for followed movies
+ * 2. Validate existing future release dates (within 90 days)
+ * 3. Notify users when dates are discovered or changed
  */
 export class DiscoverDatesService {
   /**
-   * Execute the date discovery job
+   * Execute the date discovery and validation job
    */
   async execute(): Promise<{
     success: boolean
     moviesProcessed: number
     datesDiscovered: number
+    datesValidated: number
+    datesChanged: number
     emailsSent: number
     errors: Array<{ movieId: number; error: string }>
   }> {
@@ -60,6 +65,12 @@ export class DiscoverDatesService {
     const errors: Array<{ movieId: number; error: string }> = []
     let moviesProcessed = 0
     let datesDiscovered = 0
+    let datesValidated = 0
+    let datesChanged = 0
+    const today = new Date().toISOString().split('T')[0]
+    const futureThreshold = new Date()
+    futureThreshold.setDate(futureThreshold.getDate() + 90)
+    const futureThresholdStr = futureThreshold.toISOString().split('T')[0]
 
     try {
       // Step 1: Get all follows with their movie's current release dates
@@ -83,7 +94,8 @@ export class DiscoverDatesService {
             release_dates (
               country,
               release_type,
-              release_date
+              release_date,
+              last_validated_at
             )
           )
         `)
@@ -93,7 +105,7 @@ export class DiscoverDatesService {
       const follows = allFollows as unknown as Follow[]
       console.log(`[DiscoverDatesService] Found ${follows.length} total follows`)
 
-      // Step 2: Filter for follows that need dates
+      // Step 2a: Filter for follows that need MISSING dates (discovery)
       const followsNeedingDates = follows.filter(follow => {
         const usReleaseDates = follow.movie.release_dates?.filter(rd => rd.country === 'US') || []
         const hasTheatrical = usReleaseDates.some(rd => rd.release_type === 3)
@@ -105,24 +117,47 @@ export class DiscoverDatesService {
         return false
       })
 
-      console.log(`[DiscoverDatesService] ${followsNeedingDates.length} follows need dates`)
+      // Step 2b: Filter for follows that need VALIDATION (existing future dates)
+      const followsNeedingValidation = follows.filter(follow => {
+        const usReleaseDates = follow.movie.release_dates?.filter(rd => rd.country === 'US') || []
 
-      if (followsNeedingDates.length === 0) {
+        return usReleaseDates.some(rd => {
+          // Only validate future dates within 90 days
+          if (rd.release_date <= today || rd.release_date > futureThresholdStr) return false
+
+          // Validate if never checked or not checked in last 24 hours
+          if (!rd.last_validated_at) return true
+          const lastValidated = new Date(rd.last_validated_at)
+          const hoursSinceValidation = (Date.now() - lastValidated.getTime()) / (1000 * 60 * 60)
+          return hoursSinceValidation > 24
+        })
+      })
+
+      console.log(`[DiscoverDatesService] ${followsNeedingDates.length} follows need dates, ${followsNeedingValidation.length} need validation`)
+
+      // Combine both lists and get unique movie IDs
+      const allFollowsToProcess = [...followsNeedingDates, ...followsNeedingValidation]
+
+      if (allFollowsToProcess.length === 0) {
         return {
           success: true,
           moviesProcessed: 0,
           datesDiscovered: 0,
+          datesValidated: 0,
+          datesChanged: 0,
           emailsSent: 0,
           errors: []
         }
       }
 
-      // Step 3: Get unique movie IDs to fetch from TMDB
-      const uniqueMovieIds = [...new Set(followsNeedingDates.map(f => f.movie_id))]
-      console.log(`[DiscoverDatesService] Fetching ${uniqueMovieIds.length} unique movies from TMDB`)
+      // Step 3: Get unique movie IDs to fetch from TMDB (limit to 50 per run for API safety)
+      const allMovieIds = [...new Set(allFollowsToProcess.map(f => f.movie_id))]
+      const uniqueMovieIds = allMovieIds.slice(0, 50)
+      console.log(`[DiscoverDatesService] Fetching ${uniqueMovieIds.length} unique movies from TMDB (${allMovieIds.length - uniqueMovieIds.length} deferred)`)
 
       // Step 4: Fetch fresh release dates from TMDB with rate limiting
       const updatedMovies: Map<number, MovieWithNewDates> = new Map()
+      const changedMovies: Map<number, { old: string, new: string, type: number }> = new Map()
 
       for (let i = 0; i < uniqueMovieIds.length; i++) {
         const movieId = uniqueMovieIds[i]
@@ -140,73 +175,127 @@ export class DiscoverDatesService {
           const theatrical = usReleaseDates.find((rd) => rd.type === 3)
           const streaming = usReleaseDates.find((rd) => rd.type === 4)
 
-          const theatricalDate = theatrical?.release_date?.split('T')[0] || null
-          const streamingDate = streaming?.release_date?.split('T')[0] || null
+          const theatricalDateFromTMDB = theatrical?.release_date?.split('T')[0] || null
+          const streamingDateFromTMDB = streaming?.release_date?.split('T')[0] || null
 
-          // Check if we found any new dates
-          const follow = followsNeedingDates.find(f => f.movie_id === movieId)
+          // Get current dates from database
+          const follow = allFollowsToProcess.find(f => f.movie_id === movieId)
           const currentUsReleaseDates = follow?.movie.release_dates?.filter(rd => rd.country === 'US') || []
-          const hadTheatrical = currentUsReleaseDates.some(rd => rd.release_type === 3)
-          const hadStreaming = currentUsReleaseDates.some(rd => rd.release_type === 4)
+          const currentTheatricalDate = currentUsReleaseDates.find(rd => rd.release_type === 3)?.release_date || null
+          const currentStreamingDate = currentUsReleaseDates.find(rd => rd.release_type === 4)?.release_date || null
 
-          // Get current date (in UTC, formatted as YYYY-MM-DD)
-          const today = new Date().toISOString().split('T')[0]
+          // Check for DISCOVERY (new dates)
+          const hasNewTheatrical = !currentTheatricalDate && theatricalDateFromTMDB !== null
+          const hasNewStreaming = !currentStreamingDate && streamingDateFromTMDB !== null
 
-          // Step 1: Check if dates are NEW (regardless of past/future)
-          const hasNewTheatrical = !hadTheatrical && theatricalDate !== null
-          const hasNewStreaming = !hadStreaming && streamingDate !== null
+          // Check for CHANGES (existing dates that differ)
+          const theatricalChanged = currentTheatricalDate && theatricalDateFromTMDB && currentTheatricalDate !== theatricalDateFromTMDB
+          const streamingChanged = currentStreamingDate && streamingDateFromTMDB && currentStreamingDate !== streamingDateFromTMDB
 
-          // Step 2: Check if new dates are in the FUTURE (for notifications)
-          const shouldNotifyTheatrical = hasNewTheatrical && theatricalDate > today
-          const shouldNotifyStreaming = hasNewStreaming && streamingDate > today
+          // Track changes for logging
+          if (theatricalChanged) {
+            console.log(`[DiscoverDatesService] Movie ${movieId} theatrical date changed: ${currentTheatricalDate} → ${theatricalDateFromTMDB}`)
+            datesChanged++
+          }
+          if (streamingChanged) {
+            console.log(`[DiscoverDatesService] Movie ${movieId} streaming date changed: ${currentStreamingDate} → ${streamingDateFromTMDB}`)
+            datesChanged++
+          }
 
-          // Step 3: Update database with ALL new dates (past or future)
-          if (hasNewTheatrical || hasNewStreaming) {
-            const releaseDateRecords = []
+          // Prepare records for database update
+          const releaseDateRecords = []
+          let shouldNotifyTheatrical = false
+          let shouldNotifyStreaming = false
 
-            if (hasNewTheatrical && theatricalDate) {
-              releaseDateRecords.push({
-                movie_id: movieId,
-                country: 'US',
-                release_type: 3,
-                release_date: theatricalDate
+          // Handle THEATRICAL date (discovery or change)
+          if (hasNewTheatrical && theatricalDateFromTMDB) {
+            releaseDateRecords.push({
+              movie_id: movieId,
+              country: 'US',
+              release_type: 3,
+              release_date: theatricalDateFromTMDB,
+              last_validated_at: new Date().toISOString()
+            })
+            shouldNotifyTheatrical = theatricalDateFromTMDB > today
+            datesDiscovered++
+          } else if (theatricalChanged && theatricalDateFromTMDB) {
+            releaseDateRecords.push({
+              movie_id: movieId,
+              country: 'US',
+              release_type: 3,
+              release_date: theatricalDateFromTMDB,
+              last_validated_at: new Date().toISOString()
+            })
+            // Only notify if date moved EARLIER and is still in future
+            shouldNotifyTheatrical = theatricalDateFromTMDB < currentTheatricalDate! && theatricalDateFromTMDB > today
+          } else if (currentTheatricalDate) {
+            // Just update validation timestamp (date unchanged)
+            releaseDateRecords.push({
+              movie_id: movieId,
+              country: 'US',
+              release_type: 3,
+              release_date: currentTheatricalDate,
+              last_validated_at: new Date().toISOString()
+            })
+            datesValidated++
+          }
+
+          // Handle STREAMING date (discovery or change)
+          if (hasNewStreaming && streamingDateFromTMDB) {
+            releaseDateRecords.push({
+              movie_id: movieId,
+              country: 'US',
+              release_type: 4,
+              release_date: streamingDateFromTMDB,
+              last_validated_at: new Date().toISOString()
+            })
+            shouldNotifyStreaming = streamingDateFromTMDB > today
+            datesDiscovered++
+          } else if (streamingChanged && streamingDateFromTMDB) {
+            releaseDateRecords.push({
+              movie_id: movieId,
+              country: 'US',
+              release_type: 4,
+              release_date: streamingDateFromTMDB,
+              last_validated_at: new Date().toISOString()
+            })
+            // Only notify if date moved EARLIER and is still in future
+            shouldNotifyStreaming = streamingDateFromTMDB < currentStreamingDate! && streamingDateFromTMDB > today
+          } else if (currentStreamingDate) {
+            // Just update validation timestamp (date unchanged)
+            releaseDateRecords.push({
+              movie_id: movieId,
+              country: 'US',
+              release_type: 4,
+              release_date: currentStreamingDate,
+              last_validated_at: new Date().toISOString()
+            })
+            datesValidated++
+          }
+
+          // Update database
+          if (releaseDateRecords.length > 0) {
+            const { error: upsertError } = await supabase
+              .from('release_dates')
+              .upsert(releaseDateRecords, {
+                onConflict: 'movie_id,country,release_type'
               })
-            }
 
-            if (hasNewStreaming && streamingDate) {
-              releaseDateRecords.push({
-                movie_id: movieId,
-                country: 'US',
-                release_type: 4,
-                release_date: streamingDate
-              })
+            if (upsertError) {
+              console.error(`[DiscoverDatesService] Failed to upsert release dates for movie ${movieId}:`, upsertError)
+              errors.push({ movieId, error: upsertError.message })
             }
+          }
 
-            if (releaseDateRecords.length > 0) {
-              const { error: upsertError } = await supabase
-                .from('release_dates')
-                .upsert(releaseDateRecords, {
-                  onConflict: 'movie_id,country,release_type'
-                })
-
-              if (upsertError) {
-                console.error(`[DiscoverDatesService] Failed to upsert release dates for movie ${movieId}:`, upsertError)
-                errors.push({ movieId, error: upsertError.message })
-              } else {
-                datesDiscovered += releaseDateRecords.length
-              }
-            }
-
-            // Step 4: Only add to notification queue if dates are in the FUTURE
-            if (shouldNotifyTheatrical || shouldNotifyStreaming) {
-              updatedMovies.set(movieId, {
-                movieId,
-                title: movieDetails.title,
-                posterPath: movieDetails.poster_path,
-                theatricalDate: shouldNotifyTheatrical ? theatricalDate : null,
-                streamingDate: shouldNotifyStreaming ? streamingDate : null
-              })
-            }
+          // Add to notification queue if needed
+          if (shouldNotifyTheatrical || shouldNotifyStreaming) {
+            updatedMovies.set(movieId, {
+              movieId,
+              title: movieDetails.title,
+              posterPath: movieDetails.poster_path,
+              theatricalDate: shouldNotifyTheatrical ? theatricalDateFromTMDB : null,
+              streamingDate: shouldNotifyStreaming ? streamingDateFromTMDB : null
+            })
           }
 
           moviesProcessed++
@@ -222,20 +311,22 @@ export class DiscoverDatesService {
         }
       }
 
-      console.log(`[DiscoverDatesService] Discovered ${datesDiscovered} new dates for ${updatedMovies.size} movies`)
+      console.log(`[DiscoverDatesService] Processed ${moviesProcessed} movies: ${datesDiscovered} discovered, ${datesValidated} validated, ${datesChanged} changed`)
 
       if (updatedMovies.size === 0) {
         return {
           success: true,
           moviesProcessed,
-          datesDiscovered: 0,
+          datesDiscovered,
+          datesValidated,
+          datesChanged,
           emailsSent: 0,
           errors
         }
       }
 
       // Step 6: Check for existing notifications to prevent duplicates
-      const userIds = [...new Set(followsNeedingDates.map(f => f.user_id))]
+      const userIds = [...new Set(allFollowsToProcess.map(f => f.user_id))]
       const movieIds = [...updatedMovies.keys()]
 
       const { data: existingNotifications } = await supabase
@@ -252,7 +343,7 @@ export class DiscoverDatesService {
       // Step 7: Group notifications by user email
       const notificationsByUser = new Map<string, UserNotification>()
 
-      for (const follow of followsNeedingDates) {
+      for (const follow of allFollowsToProcess) {
         const movieData = updatedMovies.get(follow.movie_id)
         if (!movieData) continue
 
@@ -363,12 +454,14 @@ export class DiscoverDatesService {
         }
       }
 
-      console.log(`[DiscoverDatesService] Complete! Sent ${emailsSent} emails, discovered ${datesDiscovered} dates`)
+      console.log(`[DiscoverDatesService] Complete! Sent ${emailsSent} emails, discovered ${datesDiscovered} dates, validated ${datesValidated} dates, changed ${datesChanged} dates`)
 
       return {
         success: true,
         moviesProcessed,
         datesDiscovered,
+        datesValidated,
+        datesChanged,
         emailsSent,
         errors
       }
