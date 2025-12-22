@@ -78,7 +78,7 @@ export default function UpcomingMovies() {
   // Fetch upcoming movies
   const fetchUpcomingMovies = async (page: number = 1, sort: SortType = 'popularity') => {
     try {
-      setLoading(page === 1) // Only show loading for first page
+      setLoading(true) // Show loading for all pages
       const response = await fetch(`/api/movies/upcoming?sort=${sort}&page=${page}&limit=30`)
 
       if (!response.ok) {
@@ -131,6 +131,8 @@ export default function UpcomingMovies() {
     if (newSort !== sortBy) {
       setSortBy(newSort)
       setCurrentPage(1)
+      // Instant scroll to top for immediate animation
+      window.scrollTo(0, 0)
       fetchUpcomingMovies(1, newSort)
     }
   }
@@ -139,6 +141,8 @@ export default function UpcomingMovies() {
   const handlePageChange = (page: number) => {
     if (page !== currentPage && pagination) {
       if (page >= 1 && page <= pagination.totalPages) {
+        // Instant scroll to top for immediate animation
+        window.scrollTo(0, 0)
         fetchUpcomingMovies(page, sortBy)
       }
     }
@@ -228,7 +232,7 @@ export default function UpcomingMovies() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 animate-in fade-in duration-300">
         <div className="mb-4 sm:mb-0">
           <h1 className="text-3xl font-bold mb-2">Upcoming Movies</h1>
           <p className="text-muted-foreground">
@@ -255,7 +259,7 @@ export default function UpcomingMovies() {
       </div>
 
       {/* Sort Controls */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 animate-in fade-in duration-300" style={{ animationDelay: '100ms' }}>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <span className="text-sm font-medium text-muted-foreground">Sort by:</span>
           <div className="grid grid-cols-2 sm:flex gap-2">
@@ -299,8 +303,11 @@ export default function UpcomingMovies() {
       {/* Movies Grid */}
       {!loading && movies.length > 0 && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4 mb-8">
-            {movies.map(movie => {
+          <div
+            key={`page-${currentPage}`}
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4 mb-8"
+          >
+            {movies.map((movie, index) => {
               // Transform to TMDB format
               const tmdbMovie = {
                 id: movie.id,
@@ -327,91 +334,63 @@ export default function UpcomingMovies() {
               }
               const isReleased = isStreamingReleased({ unifiedDates })
 
+              // Stagger animation delay (limit to first 15 cards for performance)
+              const animationDelay = index < 15 ? index * 20 : 0
+
               return (
-                <MovieCard
+                <div
                   key={movie.id}
-                  movie={tmdbMovie}
-                  onFollow={handleFollow}
-                  onUnfollow={handleUnfollow}
-                  followTypes={getMovieFollowTypes(movie.id)}
-                  loading={followLoading}
-                  unifiedDates={unifiedDates}
-                  className={isMovieFollowed(movie.id) && !isReleased ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
-                />
+                  style={{
+                    animation: `fade-in-up 0.35s ease-out forwards`,
+                    animationDelay: `${animationDelay}ms`,
+                    opacity: 0,
+                  }}
+                >
+                  <MovieCard
+                    movie={tmdbMovie}
+                    onFollow={handleFollow}
+                    onUnfollow={handleUnfollow}
+                    followTypes={getMovieFollowTypes(movie.id)}
+                    loading={followLoading}
+                    unifiedDates={unifiedDates}
+                    className={isMovieFollowed(movie.id) && !isReleased ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
+                  />
+                </div>
               )
             })}
           </div>
 
-          {/* Pagination */}
+          {/* Pagination - Minimalist Design */}
           {pagination && pagination.totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-2">
-              {/* Mobile: Compact buttons with page info */}
-              <div className="flex items-center justify-between w-full sm:hidden gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={!pagination.hasPreviousPage}
-                  className="flex-1 max-w-[120px]"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span className="ml-1">Previous</span>
-                </Button>
+            <div className="flex items-center justify-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={!pagination.hasPreviousPage}
+                className="min-w-[100px] transition-all hover:border-primary/50"
+              >
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                Previous
+              </Button>
 
-                <div className="text-sm text-muted-foreground whitespace-nowrap">
-                  Page {pagination.currentPage} of {pagination.totalPages}
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={!pagination.hasNextPage}
-                  className="flex-1 max-w-[120px]"
-                >
-                  <span className="mr-1">Next</span>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center gap-2 px-4 py-2 rounded-md bg-card/50 border border-border/50">
+                <span className="text-sm font-medium">Page</span>
+                <span className="text-base font-bold text-primary">{pagination.currentPage}</span>
+                <span className="text-sm text-muted-foreground">of</span>
+                <span className="text-sm font-medium">{pagination.totalPages}</span>
               </div>
 
-              {/* Desktop: Full pagination with page numbers */}
-              <div className="hidden sm:flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={!pagination.hasPreviousPage}
-                >
-                  <ChevronLeft className="h-4 w-4 mr-2" />
-                  Previous
-                </Button>
-
-                <div className="flex items-center space-x-2">
-                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                    const pageNum = Math.max(1, currentPage - 2) + i
-                    if (pageNum > pagination.totalPages) return null
-
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={pageNum === currentPage ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handlePageChange(pageNum)}
-                      >
-                        {pageNum}
-                      </Button>
-                    )
-                  }).filter(Boolean)}
-                </div>
-
-                <Button
-                  variant="outline"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={!pagination.hasNextPage}
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={!pagination.hasNextPage}
+                className="min-w-[100px] transition-all hover:border-primary/50"
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
             </div>
           )}
         </>

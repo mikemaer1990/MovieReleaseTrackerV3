@@ -230,3 +230,33 @@ input[type="checkbox"]:disabled {
 .slide-in-from-bottom-4 {
   animation-name: slide-in-from-bottom;
 }
+
+/* Staggered fade-in-up animation for movie cards */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out forwards;
+  opacity: 0; /* Start hidden */
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .animate-in {
+    animation: none;
+  }
+}
