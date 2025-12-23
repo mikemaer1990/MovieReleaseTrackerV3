@@ -243,19 +243,8 @@ input[type="checkbox"]:disabled {
   }
 }
 
-.animate-fade-in-up {
-  animation: fade-in-up 0.4s ease-out forwards;
-  opacity: 0; /* Start hidden */
-}
-
 /* Respect user's motion preferences */
 @media (prefers-reduced-motion: reduce) {
-  .animate-fade-in-up {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-
   .animate-in {
     animation: none;
   }

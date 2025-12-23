@@ -209,9 +209,27 @@ class UpcomingCacheService {
 
       // Create sorted datasets
       const popularitySorted = [...upcomingMovies].sort((a, b) => b.popularity - a.popularity)
-      const releaseDateSorted = [...upcomingMovies].sort((a, b) =>
-        new Date(a.release_date).getTime() - new Date(b.release_date).getTime()
-      )
+
+      // Sort by earliest known date (theatrical or streaming), with TBA movies at the end
+      const releaseDateSorted = [...upcomingMovies].sort((a, b) => {
+        // Get earliest known date for each movie
+        const getEarliestDate = (movie: TMDBMovie): number => {
+          const theatrical = movie.unifiedDates?.usTheatrical
+          const streaming = movie.unifiedDates?.streaming
+
+          const theatricalTime = theatrical ? new Date(theatrical).getTime() : Infinity
+          const streamingTime = streaming ? new Date(streaming).getTime() : Infinity
+
+          // Return earliest non-TBA date, or Infinity if both are TBA
+          return Math.min(theatricalTime, streamingTime)
+        }
+
+        const aTime = getEarliestDate(a)
+        const bTime = getEarliestDate(b)
+
+        // Movies with TBA dates (Infinity) will sort to the end
+        return aTime - bTime
+      })
 
       const cacheData: UpcomingCacheData = {
         popularitySorted,

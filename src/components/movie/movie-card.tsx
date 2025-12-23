@@ -121,9 +121,14 @@ export function MovieCard({ movie, onFollow, onUnfollow, followTypes = [], loadi
             /* Detailed dates for main movie */
             <div className="space-y-1 sm:space-y-1.5 text-sm mb-1.5 sm:mb-2">
               <div className="flex items-center gap-1.5">
-                <Film className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 shrink-0" />
-                <span className="text-foreground font-medium">
-                  {formatDateWithFallback(unifiedDates.usTheatrical)}
+                <Film className={cn(
+                  "h-3 w-3 sm:h-4 sm:w-4 shrink-0",
+                  unifiedDates.usTheatrical ? "text-yellow-500" : "text-muted-foreground/40"
+                )} />
+                <span className={cn(
+                  unifiedDates.usTheatrical ? "text-foreground font-medium" : "text-muted-foreground"
+                )}>
+                  {unifiedDates.usTheatrical ? formatDate(unifiedDates.usTheatrical) : '—'}
                 </span>
               </div>
               <div className="flex items-center gap-1.5">

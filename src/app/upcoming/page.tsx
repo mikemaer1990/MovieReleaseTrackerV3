@@ -341,7 +341,7 @@ export default function UpcomingMovies() {
                 <div
                   key={movie.id}
                   style={{
-                    animation: `fade-in-up 0.35s ease-out forwards`,
+                    animation: 'fade-in-up 0.35s ease-out forwards',
                     animationDelay: `${animationDelay}ms`,
                     opacity: 0,
                   }}
