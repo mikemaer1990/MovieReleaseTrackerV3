@@ -1,4 +1,4 @@
-import { TMDBMovie, TMDBSearchResponse } from '@/types/movie'
+import { TMDBMovie, TMDBSearchResponse, UnifiedReleaseDates } from '@/types/movie'
 import { tmdbService } from '@/lib/tmdb'
 import { CacheService } from '@/lib/redis'
 import { enrichMoviesWithDatesFast } from '@/lib/tmdb-utils'
@@ -7,9 +7,11 @@ interface MovieWithRuntime extends TMDBMovie {
   runtime?: number | null
 }
 
+type EnrichedMovie = TMDBMovie & { unifiedDates: UnifiedReleaseDates; runtime?: number }
+
 interface UpcomingCacheData {
-  popularitySorted: TMDBMovie[]
-  releaseDateSorted: TMDBMovie[]
+  popularitySorted: EnrichedMovie[]
+  releaseDateSorted: EnrichedMovie[]
   totalCount: number
   cacheBuiltAt: string
   dateRangeEnd: string
@@ -51,7 +53,7 @@ class UpcomingCacheService {
     page: number = 1,
     limit: number = 20
   ): Promise<{
-    movies: TMDBMovie[]
+    movies: EnrichedMovie[]
     pagination: {
       currentPage: number
       totalPages: number
@@ -65,7 +67,7 @@ class UpcomingCacheService {
       ? this.CACHE_KEY_POPULARITY
       : this.CACHE_KEY_RELEASE_DATE
 
-    let movies = await CacheService.get<TMDBMovie[]>(cacheKey)
+    let movies = await CacheService.get<EnrichedMovie[]>(cacheKey)
     let metadata = await CacheService.get<{ totalCount: number }>(this.CACHE_KEY_METADATA)
 
     // If cache miss, build the cache
@@ -213,7 +215,7 @@ class UpcomingCacheService {
       // Sort by earliest known date (theatrical or streaming), with TBA movies at the end
       const releaseDateSorted = [...upcomingMovies].sort((a, b) => {
         // Get earliest known date for each movie
-        const getEarliestDate = (movie: TMDBMovie): number => {
+        const getEarliestDate = (movie: EnrichedMovie): number => {
           const theatrical = movie.unifiedDates?.usTheatrical
           const streaming = movie.unifiedDates?.streaming
 
