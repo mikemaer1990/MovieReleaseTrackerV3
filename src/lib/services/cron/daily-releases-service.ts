@@ -268,6 +268,16 @@ export class DailyReleasesService {
 
       console.log(`[DailyReleasesService] Complete! Sent ${emailsSent} emails for ${newReleases.length} releases`)
 
+      // Ping heartbeat monitor (if configured)
+      if (process.env.HEALTHCHECK_DAILY_RELEASES_URL) {
+        try {
+          await fetch(process.env.HEALTHCHECK_DAILY_RELEASES_URL)
+          console.log('[DailyReleasesService] Healthcheck ping sent')
+        } catch (error) {
+          console.error('[DailyReleasesService] Healthcheck ping failed:', error)
+        }
+      }
+
       return {
         success: true,
         releasesToday: todaysReleases.length,
