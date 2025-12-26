@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { MovieCard } from '@/components/movie/movie-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { PageHeader } from '@/components/layout/page-header'
 import {
   Film,
   RefreshCw,
@@ -224,35 +225,33 @@ export default function RecentMovies() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-        <div className="mb-4 sm:mb-0">
-          <div className="flex items-center gap-3 mb-2">
-            <Sparkles className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">Recent Releases</h1>
-          </div>
-          <p className="text-muted-foreground">
-            {pagination && (
-              <>
-                {pagination.total_results.toLocaleString()} movies • Last {filters?.daysBack || 90} days
-              </>
-            )}
-          </p>
-        </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setMovies([])
-            setCurrentPage(1)
-            fetchRecentMovies(1)
-          }}
-          disabled={loading}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
-      </div>
+      <PageHeader
+        title="Recent Releases"
+        description={
+          pagination ? (
+            <>
+              {pagination.total_results.toLocaleString()} movies • Last {filters?.daysBack || 90} days
+            </>
+          ) : undefined
+        }
+        actions={
+          process.env.NODE_ENV === 'development' ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setMovies([])
+                setCurrentPage(1)
+                fetchRecentMovies(1)
+              }}
+              disabled={loading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          ) : undefined
+        }
+      />
 
       {/* Loading State */}
       {loading && (

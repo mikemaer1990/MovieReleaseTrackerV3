@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { MovieCard } from '@/components/movie/movie-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { PageHeader } from '@/components/layout/page-header'
 import {
   Film,
   TrendingUp,
@@ -232,30 +233,33 @@ export default function UpcomingMovies() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 animate-in fade-in duration-300">
-        <div className="mb-4 sm:mb-0">
-          <h1 className="text-3xl font-bold mb-2">Upcoming Movies</h1>
-          <p className="text-muted-foreground">
-            Discover movies releasing in the next 6 months
-            {pagination && (
-              <span className="ml-2">
-                • {pagination.totalMovies.toLocaleString()} movies found
-              </span>
-            )}
-          </p>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefreshCache}
-            disabled={refreshing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-        </div>
+      <div className="animate-in fade-in duration-300">
+        <PageHeader
+          title="Upcoming Movies"
+          description={
+            <>
+              Discover movies releasing in the next 6 months
+              {pagination && (
+                <span className="ml-2">
+                  • {pagination.totalMovies.toLocaleString()} movies found
+                </span>
+              )}
+            </>
+          }
+          actions={
+            process.env.NODE_ENV === 'development' ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefreshCache}
+                disabled={refreshing}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            ) : undefined
+          }
+        />
       </div>
 
       {/* Sort Controls */}

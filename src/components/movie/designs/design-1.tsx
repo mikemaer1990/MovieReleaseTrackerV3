@@ -396,14 +396,15 @@ export default function Design1({
             {/* Multi-Source Ratings */}
             <MovieRatingsDisplay ratings={ratings} />
 
-            {/* Follow Buttons - Pill Style */}
+            {/* Follow Buttons - Mobile: Stacked Full-Width, Desktop: Compact Pills */}
             {isAuthenticated && !isStreamingAvailable && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-2">
                 <button
                   onClick={() => handleAnimatedToggle('THEATRICAL')}
                   disabled={followLoading}
                   className={cn(
-                    "group relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-300 cursor-pointer overflow-visible active:scale-95",
+                    "group relative inline-flex items-center justify-center sm:justify-start gap-2 sm:gap-1.5 px-4 sm:px-3 py-3 sm:py-1.5 rounded-md text-base sm:text-sm font-medium transition-all duration-300 cursor-pointer overflow-visible active:scale-95",
+                    "w-full sm:w-auto h-12 sm:h-auto",
                     isFollowingTheatrical
                       ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/50"
                       : "bg-zinc-800/60 text-zinc-200 border border-zinc-700 hover:bg-zinc-700/60"
@@ -414,23 +415,23 @@ export default function Design1({
                   <ParticleBurst active={burstTheatrical} color="yellow" />
 
                   {/* Icon with rotate & morph animation */}
-                  <div className="relative w-3.5 h-3.5">
+                  <div className="relative w-4 h-4 sm:w-3.5 sm:h-3.5">
                     {isFollowingTheatrical ? (
                       <>
-                        <Check className="absolute inset-0 h-3.5 w-3.5 transition-all duration-300 group-hover:opacity-0 group-hover:rotate-90 group-hover:scale-75" />
-                        <X className="absolute inset-0 h-3.5 w-3.5 transition-all duration-300 opacity-0 -rotate-90 scale-75 group-hover:opacity-100 group-hover:rotate-0 group-hover:scale-100" />
+                        <Check className="absolute inset-0 h-4 w-4 sm:h-3.5 sm:w-3.5 transition-all duration-300 group-hover:opacity-0 group-hover:rotate-90 group-hover:scale-75" />
+                        <X className="absolute inset-0 h-4 w-4 sm:h-3.5 sm:w-3.5 transition-all duration-300 opacity-0 -rotate-90 scale-75 group-hover:opacity-100 group-hover:rotate-0 group-hover:scale-100" />
                       </>
                     ) : (
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                     )}
                   </div>
 
-                  <Film className="h-3.5 w-3.5" />
+                  <Film className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
 
-                  {/* Text with transition */}
-                  <span className="relative">
-                    <span className="transition-opacity duration-300 group-hover:opacity-0">Theatrical</span>
-                    <span className="absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap">
+                  {/* Text - simplified for mobile (no hover transition) */}
+                  <span className="sm:relative">
+                    <span className="sm:transition-opacity sm:duration-300 sm:group-hover:opacity-0">Theatrical</span>
+                    <span className="hidden sm:block sm:absolute sm:inset-0 sm:transition-opacity sm:duration-300 sm:opacity-0 sm:group-hover:opacity-100 sm:whitespace-nowrap">
                       {isFollowingTheatrical ? 'Unfollow' : 'Theatrical'}
                     </span>
                   </span>
@@ -440,7 +441,8 @@ export default function Design1({
                   onClick={() => handleAnimatedToggle('STREAMING')}
                   disabled={followLoading}
                   className={cn(
-                    "group relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-300 cursor-pointer overflow-visible active:scale-95",
+                    "group relative inline-flex items-center justify-center sm:justify-start gap-2 sm:gap-1.5 px-4 sm:px-3 py-3 sm:py-1.5 rounded-md text-base sm:text-sm font-medium transition-all duration-300 cursor-pointer overflow-visible active:scale-95",
+                    "w-full sm:w-auto h-12 sm:h-auto",
                     isFollowingStreaming
                       ? "bg-amber-500/20 text-amber-400 border border-amber-500/50 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/50"
                       : "bg-zinc-800/60 text-zinc-200 border border-zinc-700 hover:bg-zinc-700/60"
@@ -451,23 +453,23 @@ export default function Design1({
                   <ParticleBurst active={burstStreaming} color="amber" />
 
                   {/* Icon with rotate & morph animation */}
-                  <div className="relative w-3.5 h-3.5">
+                  <div className="relative w-4 h-4 sm:w-3.5 sm:h-3.5">
                     {isFollowingStreaming ? (
                       <>
-                        <Check className="absolute inset-0 h-3.5 w-3.5 transition-all duration-300 group-hover:opacity-0 group-hover:rotate-90 group-hover:scale-75" />
-                        <X className="absolute inset-0 h-3.5 w-3.5 transition-all duration-300 opacity-0 -rotate-90 scale-75 group-hover:opacity-100 group-hover:rotate-0 group-hover:scale-100" />
+                        <Check className="absolute inset-0 h-4 w-4 sm:h-3.5 sm:w-3.5 transition-all duration-300 group-hover:opacity-0 group-hover:rotate-90 group-hover:scale-75" />
+                        <X className="absolute inset-0 h-4 w-4 sm:h-3.5 sm:w-3.5 transition-all duration-300 opacity-0 -rotate-90 scale-75 group-hover:opacity-100 group-hover:rotate-0 group-hover:scale-100" />
                       </>
                     ) : (
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                     )}
                   </div>
 
-                  <Tv className="h-3.5 w-3.5" />
+                  <Tv className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
 
-                  {/* Text with transition */}
-                  <span className="relative">
-                    <span className="transition-opacity duration-300 group-hover:opacity-0">Streaming</span>
-                    <span className="absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap">
+                  {/* Text - simplified for mobile (no hover transition) */}
+                  <span className="sm:relative">
+                    <span className="sm:transition-opacity sm:duration-300 sm:group-hover:opacity-0">Streaming</span>
+                    <span className="hidden sm:block sm:absolute sm:inset-0 sm:transition-opacity sm:duration-300 sm:opacity-0 sm:group-hover:opacity-100 sm:whitespace-nowrap">
                       {isFollowingStreaming ? 'Unfollow' : 'Streaming'}
                     </span>
                   </span>
@@ -477,29 +479,29 @@ export default function Design1({
                   <button
                     onClick={handleAnimatedFollow}
                     disabled={followLoading}
-                    className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer overflow-visible bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-400 border border-yellow-500/40 hover:from-yellow-500/30 hover:to-amber-500/30 active:scale-95"
+                    className="relative inline-flex items-center justify-center sm:justify-start gap-2 sm:gap-1.5 px-4 sm:px-3 py-3 sm:py-1.5 rounded-md text-base sm:text-sm font-medium transition-all cursor-pointer overflow-visible bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-400 border border-yellow-500/40 hover:from-yellow-500/30 hover:to-amber-500/30 active:scale-95 w-full sm:w-auto h-12 sm:h-auto"
                     aria-label="Follow both theatrical and streaming releases"
                   >
                     <ParticleBurst active={burstBoth} color="yellow" />
-                    <Plus className="h-3.5 w-3.5" />
+                    <Plus className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                     <span>Both</span>
                   </button>
                 )}
               </div>
             )}
 
-            {/* Where to Watch - Pill Style */}
+            {/* Where to Watch - Mobile: Stacked Full-Width, Desktop: Compact Pills */}
             {isStreamingAvailable && (usWatchProviders && (usWatchProviders.flatrate?.length || usWatchProviders.rent?.length || usWatchProviders.buy?.length) || followTypes.length > 0) && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-2">
                 {usWatchProviders && (usWatchProviders.flatrate?.length || usWatchProviders.rent?.length || usWatchProviders.buy?.length) && (
                   <a
                     href={usWatchProviders.link || `https://www.themoviedb.org/movie/${movie.id}/watch`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500"
+                    className="inline-flex items-center justify-center sm:justify-start gap-2 sm:gap-1.5 px-4 sm:px-3 py-3 sm:py-1.5 rounded-md text-base sm:text-sm font-medium transition-all cursor-pointer bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:from-yellow-400 hover:to-amber-500 w-full sm:w-auto h-12 sm:h-auto"
                     aria-label="Open where to watch on TMDB (opens in new tab)"
                   >
-                    <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                    <ExternalLink className="h-4 w-4 sm:h-3.5 sm:w-3.5" aria-hidden="true" />
                     <span>Where to Watch</span>
                   </a>
                 )}
@@ -514,10 +516,10 @@ export default function Design1({
                       }
                     }}
                     disabled={followLoading}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer bg-zinc-800/60 text-zinc-300 border border-zinc-700 hover:bg-zinc-700/60"
+                    className="inline-flex items-center justify-center sm:justify-start gap-2 sm:gap-1.5 px-4 sm:px-3 py-3 sm:py-1.5 rounded-md text-base sm:text-sm font-medium transition-all cursor-pointer bg-zinc-800/60 text-zinc-300 border border-zinc-700 hover:bg-zinc-700/60 w-full sm:w-auto h-12 sm:h-auto"
                     aria-label="Unfollow all releases for this movie"
                   >
-                    <X className="h-3.5 w-3.5" aria-hidden="true" />
+                    <X className="h-4 w-4 sm:h-3.5 sm:w-3.5" aria-hidden="true" />
                     <span>Unfollow</span>
                   </button>
                 )}

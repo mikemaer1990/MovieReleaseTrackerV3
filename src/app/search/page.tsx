@@ -5,6 +5,7 @@ import { useAuthContext } from '@/components/providers/auth-provider'
 import { useRouter } from 'next/navigation'
 import { MovieCard } from '@/components/movie/movie-card'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/page-header'
 import { Search, Loader2, X } from 'lucide-react'
 import { TMDBMovie, TMDBSearchResponse, FollowType, UnifiedReleaseDates } from '@/types/movie'
 import { useFollows } from '@/hooks/use-follows'
@@ -325,15 +326,14 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="py-6 space-y-8">
+    <div className="space-y-12">
       {/* Hero Search Section */}
-      <div className="max-w-3xl mx-auto space-y-6">
-        <div className="text-center space-y-3">
-          <h1 className="text-5xl font-bold text-primary">Discover Movies</h1>
-          <p className="text-lg text-muted-foreground">
-            Search for movies and get notified when they&apos;re released
-          </p>
-        </div>
+      <div className="max-w-3xl mx-auto pt-12">
+        <PageHeader
+          title="Discover Movies"
+          description="Search for movies and get notified when they're released"
+          className="text-left sm:text-center"
+        />
 
         {/* Hero Search Input */}
         <form onSubmit={handleSearch} className="space-y-4">
@@ -366,8 +366,8 @@ export default function SearchPage() {
           </div>
 
           {/* Status Hint */}
-          <div className="flex items-center justify-center text-sm min-h-[20px]">
-            <p id="search-hint" className="text-muted-foreground text-center">
+          <div className="flex items-center justify-center text-xs min-h-[20px]">
+            <p id="search-hint" className="text-muted-foreground/60 text-center">
               {loading ? (
                 <span className="flex items-center space-x-2">
                   <Loader2 className="h-3 w-3 animate-spin" />
@@ -493,9 +493,9 @@ export default function SearchPage() {
 
       {/* Discover Movies (Upcoming + Popular Unreleased) */}
       {!query && (
-        <section>
-          <h2 className="text-2xl font-semibold mb-6">Discover Movies</h2>
-          <p className="text-muted-foreground mb-6">
+        <section className="pt-8 border-t border-border/40">
+          <h2 className="text-2xl font-semibold mb-2">Popular & Upcoming</h2>
+          <p className="text-muted-foreground mb-8">
             Upcoming releases and popular movies you can follow
           </p>
 

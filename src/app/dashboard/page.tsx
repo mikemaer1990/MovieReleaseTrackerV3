@@ -7,6 +7,7 @@ import { MovieCard } from '@/components/movie/movie-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/layout/page-header'
 import { Film, Calendar, Star, Search, Check } from 'lucide-react'
 import Link from 'next/link'
 import { MovieService } from '@/lib/services/movie-service'
@@ -218,14 +219,13 @@ export default function Dashboard() {
 
   return (
     <div className="py-6 space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-bold text-primary">My Movie Dashboard</h1>
-        <p className="text-muted-foreground">
-          Manage your followed movies and notification preferences
-        </p>
+      <PageHeader
+        title="My Movie Dashboard"
+        description="Manage your followed movies and notification preferences"
+      />
 
-        {/* Stats Badges */}
-        <div className="flex flex-wrap gap-2 pt-2">
+      {/* Stats Badges */}
+      <div className="flex flex-wrap gap-2 -mt-4">
         <Badge variant="outline" className="px-3 py-1.5 text-sm bg-zinc-800/60 text-zinc-200 border-zinc-700">
           <Film className="h-4 w-4 mr-1.5" />
           {stats.total} Total
@@ -246,7 +246,6 @@ export default function Dashboard() {
           <Check className="h-4 w-4 mr-1.5" />
           {stats.released} Released
         </Badge>
-        </div>
       </div>
 
       {/* Movies Grid */}
