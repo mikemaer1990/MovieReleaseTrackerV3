@@ -49,6 +49,7 @@ export class DailyReleasesService {
     releasesToday: number
     emailsSent: number
     errors: Array<{ email: string; error: string }>
+    healthcheckPinged?: { attempted: boolean; success: boolean; url?: string; status?: number; error?: string }
   }> {
     const supabase = createSupabaseAdmin()
     const today = new Date().toISOString().split('T')[0] // '2025-10-05'
