@@ -49,8 +49,6 @@ export class DailyReleasesService {
     releasesToday: number
     emailsSent: number
     errors: Array<{ email: string; error: string }>
-    healthcheckPinged?: { attempted: boolean; success: boolean; url?: string; status?: number; error?: string }
-    codeVersion?: string
   }> {
     const supabase = createSupabaseAdmin()
     const today = new Date().toISOString().split('T')[0] // '2025-10-05'
@@ -270,59 +268,30 @@ export class DailyReleasesService {
 
       console.log(`[DailyReleasesService] Complete! Sent ${emailsSent} emails for ${newReleases.length} releases`)
 
-      // Ping Healthchecks.io on success
-      const healthcheckResult = await this.pingHealthcheck(true)
+      // Ping Healthchecks.io on success (if configured)
+      if (process.env.HEALTHCHECK_DAILY_RELEASES_URL) {
+        fetch(process.env.HEALTHCHECK_DAILY_RELEASES_URL)
+          .then(() => console.log('[DailyReleasesService] Healthcheck ping sent'))
+          .catch((err) => console.error('[DailyReleasesService] Healthcheck ping failed:', err))
+      }
 
       return {
         success: true,
         releasesToday: todaysReleases.length,
         emailsSent,
-        errors,
-        healthcheckPinged: healthcheckResult,
-        codeVersion: '2025-12-27-debug' // Debug: verify new code is deployed
+        errors
       }
     } catch (error) {
       console.error('[DailyReleasesService] Fatal error:', error)
 
-      // Ping Healthchecks.io with failure
-      await this.pingHealthcheck(false)
+      // Ping Healthchecks.io with failure (if configured)
+      if (process.env.HEALTHCHECK_DAILY_RELEASES_URL) {
+        fetch(`${process.env.HEALTHCHECK_DAILY_RELEASES_URL}/fail`)
+          .then(() => console.log('[DailyReleasesService] Healthcheck failure ping sent'))
+          .catch((err) => console.error('[DailyReleasesService] Healthcheck failure ping failed:', err))
+      }
 
       throw error
-    }
-  }
-
-  /**
-   * Ping Healthchecks.io monitoring service
-   * @param success - true for success ping, false for failure ping
-   * @returns Object with ping status details
-   */
-  private async pingHealthcheck(success: boolean): Promise<{ attempted: boolean; success: boolean; url?: string; status?: number; error?: string }> {
-    if (!process.env.HEALTHCHECK_DAILY_RELEASES_URL) {
-      return { attempted: false, success: false, error: 'HEALTHCHECK_DAILY_RELEASES_URL not configured' }
-    }
-
-    try {
-      const url = success
-        ? process.env.HEALTHCHECK_DAILY_RELEASES_URL
-        : `${process.env.HEALTHCHECK_DAILY_RELEASES_URL}/fail`
-
-      const response = await fetch(url)
-      console.log(`[DailyReleasesService] Healthchecks.io ping sent (${success ? 'success' : 'failure'}): ${response.status}`)
-
-      return {
-        attempted: true,
-        success: response.ok,
-        url: url,
-        status: response.status
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      console.error('[DailyReleasesService] Healthchecks.io ping failed:', errorMessage)
-      return {
-        attempted: true,
-        success: false,
-        error: errorMessage
-      }
     }
   }
 }
