@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dailyReleasesService } from '@/lib/services/cron/daily-releases-service'
 
+// Disable caching for this route
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 /**
  * Cron Job: Daily Release Notifications
  *
