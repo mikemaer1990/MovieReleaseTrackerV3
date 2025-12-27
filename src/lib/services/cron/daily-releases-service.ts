@@ -268,15 +268,8 @@ export class DailyReleasesService {
 
       console.log(`[DailyReleasesService] Complete! Sent ${emailsSent} emails for ${newReleases.length} releases`)
 
-      // Ping heartbeat monitor (if configured)
-      if (process.env.HEALTHCHECK_DAILY_RELEASES_URL) {
-        try {
-          await fetch(process.env.HEALTHCHECK_DAILY_RELEASES_URL)
-          console.log('[DailyReleasesService] Healthcheck ping sent')
-        } catch (error) {
-          console.error('[DailyReleasesService] Healthcheck ping failed:', error)
-        }
-      }
+      // Ping Healthchecks.io on success
+      await this.pingHealthcheck(true)
 
       return {
         success: true,
@@ -286,7 +279,32 @@ export class DailyReleasesService {
       }
     } catch (error) {
       console.error('[DailyReleasesService] Fatal error:', error)
+
+      // Ping Healthchecks.io with failure
+      await this.pingHealthcheck(false)
+
       throw error
+    }
+  }
+
+  /**
+   * Ping Healthchecks.io monitoring service
+   * @param success - true for success ping, false for failure ping
+   */
+  private async pingHealthcheck(success: boolean): Promise<void> {
+    if (!process.env.HEALTHCHECK_DAILY_RELEASES_URL) {
+      return
+    }
+
+    try {
+      const url = success
+        ? process.env.HEALTHCHECK_DAILY_RELEASES_URL
+        : `${process.env.HEALTHCHECK_DAILY_RELEASES_URL}/fail`
+
+      const response = await fetch(url)
+      console.log(`[DailyReleasesService] Healthchecks.io ping sent (${success ? 'success' : 'failure'}): ${response.status}`)
+    } catch (error) {
+      console.error('[DailyReleasesService] Healthchecks.io ping failed:', error)
     }
   }
 }
