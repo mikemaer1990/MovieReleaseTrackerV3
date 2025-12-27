@@ -269,13 +269,14 @@ export class DailyReleasesService {
       console.log(`[DailyReleasesService] Complete! Sent ${emailsSent} emails for ${newReleases.length} releases`)
 
       // Ping Healthchecks.io on success
-      await this.pingHealthcheck(true)
+      const healthcheckResult = await this.pingHealthcheck(true)
 
       return {
         success: true,
         releasesToday: todaysReleases.length,
         emailsSent,
-        errors
+        errors,
+        healthcheckPinged: healthcheckResult
       }
     } catch (error) {
       console.error('[DailyReleasesService] Fatal error:', error)
@@ -290,10 +291,11 @@ export class DailyReleasesService {
   /**
    * Ping Healthchecks.io monitoring service
    * @param success - true for success ping, false for failure ping
+   * @returns Object with ping status details
    */
-  private async pingHealthcheck(success: boolean): Promise<void> {
+  private async pingHealthcheck(success: boolean): Promise<{ attempted: boolean; success: boolean; url?: string; status?: number; error?: string }> {
     if (!process.env.HEALTHCHECK_DAILY_RELEASES_URL) {
-      return
+      return { attempted: false, success: false, error: 'HEALTHCHECK_DAILY_RELEASES_URL not configured' }
     }
 
     try {
@@ -303,8 +305,21 @@ export class DailyReleasesService {
 
       const response = await fetch(url)
       console.log(`[DailyReleasesService] Healthchecks.io ping sent (${success ? 'success' : 'failure'}): ${response.status}`)
+
+      return {
+        attempted: true,
+        success: response.ok,
+        url: url,
+        status: response.status
+      }
     } catch (error) {
-      console.error('[DailyReleasesService] Healthchecks.io ping failed:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error('[DailyReleasesService] Healthchecks.io ping failed:', errorMessage)
+      return {
+        attempted: true,
+        success: false,
+        error: errorMessage
+      }
     }
   }
 }
