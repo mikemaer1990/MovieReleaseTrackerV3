@@ -50,6 +50,7 @@ export class DailyReleasesService {
     emailsSent: number
     errors: Array<{ email: string; error: string }>
     healthcheckPinged?: { attempted: boolean; success: boolean; url?: string; status?: number; error?: string }
+    codeVersion?: string
   }> {
     const supabase = createSupabaseAdmin()
     const today = new Date().toISOString().split('T')[0] // '2025-10-05'
@@ -277,7 +278,8 @@ export class DailyReleasesService {
         releasesToday: todaysReleases.length,
         emailsSent,
         errors,
-        healthcheckPinged: healthcheckResult
+        healthcheckPinged: healthcheckResult,
+        codeVersion: '2025-12-27-debug' // Debug: verify new code is deployed
       }
     } catch (error) {
       console.error('[DailyReleasesService] Fatal error:', error)
