@@ -26,6 +26,8 @@ export async function GET(request: NextRequest) {
     )
   }
 
+  const healthcheckUrl = process.env.HEALTHCHECK_DAILY_RELEASES_URL
+
   try {
     console.log('[Cron] Starting daily-releases job...')
     const startTime = Date.now()
@@ -35,17 +37,39 @@ export async function GET(request: NextRequest) {
     const duration = Date.now() - startTime
     console.log(`[Cron] daily-releases completed in ${duration}ms`)
 
+    // Ping healthcheck on success
+    if (healthcheckUrl) {
+      fetch(healthcheckUrl)
+        .then(() => console.log('[Cron] Healthcheck ping sent'))
+        .catch(err => console.error('[Cron] Healthcheck ping failed:', err))
+    }
+
     return NextResponse.json({
       ...result,
-      duration: `${duration}ms`
+      duration: `${duration}ms`,
+      healthcheckPinged: !!healthcheckUrl
     })
   } catch (error) {
     console.error('[Cron] daily-releases failed:', error)
 
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+    // Ping healthcheck with failure and error message
+    if (healthcheckUrl) {
+      fetch(`${healthcheckUrl}/fail`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: errorMessage
+      })
+        .then(() => console.log('[Cron] Healthcheck failure ping sent'))
+        .catch(err => console.error('[Cron] Healthcheck failure ping failed:', err))
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: errorMessage,
+        healthcheckPinged: !!healthcheckUrl
       },
       { status: 500 }
     )

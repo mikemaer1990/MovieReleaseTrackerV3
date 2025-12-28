@@ -268,13 +268,6 @@ export class DailyReleasesService {
 
       console.log(`[DailyReleasesService] Complete! Sent ${emailsSent} emails for ${newReleases.length} releases`)
 
-      // Ping Healthchecks.io on success (if configured)
-      if (process.env.HEALTHCHECK_DAILY_RELEASES_URL) {
-        fetch(process.env.HEALTHCHECK_DAILY_RELEASES_URL)
-          .then(() => console.log('[DailyReleasesService] Healthcheck ping sent'))
-          .catch((err) => console.error('[DailyReleasesService] Healthcheck ping failed:', err))
-      }
-
       return {
         success: true,
         releasesToday: todaysReleases.length,
@@ -283,14 +276,6 @@ export class DailyReleasesService {
       }
     } catch (error) {
       console.error('[DailyReleasesService] Fatal error:', error)
-
-      // Ping Healthchecks.io with failure (if configured)
-      if (process.env.HEALTHCHECK_DAILY_RELEASES_URL) {
-        fetch(`${process.env.HEALTHCHECK_DAILY_RELEASES_URL}/fail`)
-          .then(() => console.log('[DailyReleasesService] Healthcheck failure ping sent'))
-          .catch((err) => console.error('[DailyReleasesService] Healthcheck failure ping failed:', err))
-      }
-
       throw error
     }
   }
