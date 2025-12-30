@@ -37,11 +37,14 @@ export async function GET(request: NextRequest) {
     const duration = Date.now() - startTime
     console.log(`[Cron] daily-releases completed in ${duration}ms`)
 
-    // Ping healthcheck on success
+    // Ping healthcheck on success (must await to prevent Vercel from killing the request)
     if (healthcheckUrl) {
-      fetch(healthcheckUrl)
-        .then(() => console.log('[Cron] Healthcheck ping sent'))
-        .catch(err => console.error('[Cron] Healthcheck ping failed:', err))
+      try {
+        await fetch(healthcheckUrl)
+        console.log('[Cron] Healthcheck ping sent')
+      } catch (err) {
+        console.error('[Cron] Healthcheck ping failed:', err)
+      }
     }
 
     return NextResponse.json({
@@ -54,15 +57,18 @@ export async function GET(request: NextRequest) {
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 
-    // Ping healthcheck with failure and error message
+    // Ping healthcheck with failure and error message (must await to prevent Vercel from killing the request)
     if (healthcheckUrl) {
-      fetch(`${healthcheckUrl}/fail`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: errorMessage
-      })
-        .then(() => console.log('[Cron] Healthcheck failure ping sent'))
-        .catch(err => console.error('[Cron] Healthcheck failure ping failed:', err))
+      try {
+        await fetch(`${healthcheckUrl}/fail`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: errorMessage
+        })
+        console.log('[Cron] Healthcheck failure ping sent')
+      } catch (err) {
+        console.error('[Cron] Healthcheck failure ping failed:', err)
+      }
     }
 
     return NextResponse.json(
