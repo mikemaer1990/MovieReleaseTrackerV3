@@ -16,8 +16,15 @@ jobs:
           curl -X GET \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -f \
+            --retry 3 \
+            --retry-delay 30 \
+            --retry-all-errors \
+            --max-time 120 \
             https://moviereleasetracker.vercel.app/api/cron/refresh-recent-cache
 
-      - name: Check Result
+      - name: Notify on Failure
         if: failure()
-        run: echo "Recent cache refresh failed - check application logs"
+        run: |
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{"content": "⚠️ Recent movies cache refresh failed after 3 retries"}'
