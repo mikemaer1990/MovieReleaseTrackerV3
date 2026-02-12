@@ -84,6 +84,22 @@ function formatDate(dateString: string): string {
 }
 
 /**
+ * Helper to format date short (YYYY-MM-DD -> Dec 29)
+ */
+function formatDateShort(dateString: string | null): string {
+  if (!dateString) return ''
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    })
+  } catch {
+    return dateString
+  }
+}
+
+/**
  * Helper to get poster URL
  */
 function getPosterUrl(posterPath: string | null, size: 'w342' | 'w500' = 'w500'): string {
@@ -212,7 +228,8 @@ export function buildSingleReleaseEmail(
   releaseType: 'theatrical' | 'streaming'
 ): string {
   const releaseTypeIcon = releaseType === 'theatrical' ? '🎬' : '📺'
-  const releaseTypeText = releaseType === 'theatrical' ? 'Now in Theaters' : 'Available for Streaming'
+  const releaseDateStr = movie.releaseDate ? ` • ${formatDateShort(movie.releaseDate)}` : ''
+  const releaseTypeText = releaseType === 'theatrical' ? `In Theaters${releaseDateStr}` : `Streaming${releaseDateStr}`
   const ctaText = releaseType === 'theatrical' ? 'Find Showtimes' : 'Stream Now'
 
   const ratingHtml = movie.voteAverage && movie.voteAverage > 0 ? `
@@ -243,8 +260,7 @@ export function buildSingleReleaseEmail(
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 400px; margin: 24px auto; background: linear-gradient(90deg, rgba(243,217,107,0.15), rgba(216,185,75,0.15)); border: 2px solid #f3d96b; border-radius: 8px;">
         <tr>
           <td style="padding: 20px; text-align: center;">
-            <p style="margin: 0 0 4px 0; font-size: 22px; color: #f3d96b; font-weight: 700;">${releaseTypeIcon} ${releaseTypeText}</p>
-            <p style="margin: 0; font-size: 14px; color: #a3a3a3;">Released Today</p>
+            <p style="margin: 0; font-size: 22px; color: #f3d96b; font-weight: 700;">${releaseTypeIcon} ${releaseTypeText}</p>
           </td>
         </tr>
       </table>
@@ -281,7 +297,7 @@ export function buildBatchReleaseEmail(
 
   const theatricalSection = theatrical.length > 0 ? `
   <h2 style="font-size: 22px; color: #f3d96b; margin: 0 0 20px 0; padding-bottom: 12px; border-bottom: 2px solid #333; font-weight: 700;">
-    🎬 Now in Theaters (${theatrical.length})
+    🎬 In Theaters (${theatrical.length})
   </h2>
   ${theatrical.map(movie => {
     const ratingHtml = movie.voteAverage && movie.voteAverage > 0 ? `
@@ -289,6 +305,7 @@ export function buildBatchReleaseEmail(
           <span style="font-size: 16px; color: #fbbf24;">★</span>
           <span style="font-size: 14px; color: #ededed; font-weight: 600;">${movie.voteAverage.toFixed(1)}/10</span>
         </div>` : ''
+    const releaseDateStr = movie.releaseDate ? ` • ${formatDateShort(movie.releaseDate)}` : ''
 
     return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #1f1f1f, #2b2b2b); border-radius: 12px; margin-bottom: 20px; border: 1px solid #333;">
@@ -300,7 +317,7 @@ export function buildBatchReleaseEmail(
         <h3 style="margin: 0 0 8px 0; font-size: 20px; color: #f3d96b; font-weight: 600;">${movie.title}</h3>
         ${ratingHtml}
         <div style="background: rgba(243,217,107,0.1); border-radius: 6px; padding: 12px; display: inline-block; margin-bottom: 12px;">
-          <p style="margin: 0 0 2px 0; font-size: 14px; color: #f3d96b; font-weight: 600;">In Theaters Now</p>
+          <p style="margin: 0; font-size: 14px; color: #f3d96b; font-weight: 600;">In Theaters${releaseDateStr}</p>
         </div>
         <div>
           <a href="${APP_URL}/movie/${movie.id}" style="display: inline-block; padding: 10px 20px; background: linear-gradient(90deg, #f3d96b, #d8b94b); color: #0a0a0a; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">Find Showtimes</a>
@@ -312,7 +329,7 @@ export function buildBatchReleaseEmail(
 
   const streamingSection = streaming.length > 0 ? `
   <h2 style="font-size: 22px; color: #f3d96b; margin: ${theatrical.length > 0 ? '32px' : '0'} 0 20px 0; padding-bottom: 12px; border-bottom: 2px solid #333; font-weight: 700;">
-    📺 Available for Streaming (${streaming.length})
+    📺 Streaming (${streaming.length})
   </h2>
   ${streaming.map(movie => {
     const ratingHtml = movie.voteAverage && movie.voteAverage > 0 ? `
@@ -320,6 +337,7 @@ export function buildBatchReleaseEmail(
           <span style="font-size: 16px; color: #fbbf24;">★</span>
           <span style="font-size: 14px; color: #ededed; font-weight: 600;">${movie.voteAverage.toFixed(1)}/10</span>
         </div>` : ''
+    const releaseDateStr = movie.releaseDate ? ` • ${formatDateShort(movie.releaseDate)}` : ''
 
     return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #1f1f1f, #2b2b2b); border-radius: 12px; margin-bottom: 20px; border: 1px solid #333;">
@@ -331,7 +349,7 @@ export function buildBatchReleaseEmail(
         <h3 style="margin: 0 0 8px 0; font-size: 20px; color: #f3d96b; font-weight: 600;">${movie.title}</h3>
         ${ratingHtml}
         <div style="background: rgba(243,217,107,0.1); border-radius: 6px; padding: 12px; display: inline-block; margin-bottom: 12px;">
-          <p style="margin: 0 0 2px 0; font-size: 14px; color: #f3d96b; font-weight: 600;">Streaming Now</p>
+          <p style="margin: 0; font-size: 14px; color: #f3d96b; font-weight: 600;">Streaming${releaseDateStr}</p>
         </div>
         <div>
           <a href="${APP_URL}/movie/${movie.id}" style="display: inline-block; padding: 10px 20px; background: linear-gradient(90deg, #f3d96b, #d8b94b); color: #0a0a0a; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">Stream Now</a>
