@@ -119,9 +119,10 @@ class RecentCacheService {
       const cutoffDateString = cutoffDate.toISOString().split('T')[0]
 
       // Dynamic fetching
-      const allMovies: TMDBMovie[] = []
       const uniqueMovieIds = new Set<number>()
       let currentPage = 1
+      let totalFetchedCount = 0
+      const allEnrichedMovies: EnrichedMovie[] = []
       let recentDigitalMovies: EnrichedMovie[] = []
 
       // Keep fetching until we have enough filtered movies or hit the max pages
@@ -134,36 +135,38 @@ class RecentCacheService {
           page: currentPage
         })
 
-        // Add unique, non-adult movies
+        // Break if TMDB has no more results
+        if (result.results.length === 0) {
+          break
+        }
+
+        // Collect only new, non-adult movies from this page
+        const newMovies: TMDBMovie[] = []
         result.results.forEach(movie => {
           if (!movie.adult && !uniqueMovieIds.has(movie.id)) {
             uniqueMovieIds.add(movie.id)
-            allMovies.push(movie)
+            newMovies.push(movie)
           }
         })
 
-        // Enrich the current batch with unified release dates
-        const enrichedBatch = await enrichMoviesWithDatesFast(allMovies) as EnrichedMovie[]
+        totalFetchedCount += newMovies.length
 
-        // Filter by digital/streaming release date
-        recentDigitalMovies = enrichedBatch.filter(movie => {
+        // Enrich only the new movies from this page (not the full accumulated list)
+        if (newMovies.length > 0) {
+          const enrichedNewMovies = await enrichMoviesWithDatesFast(newMovies) as EnrichedMovie[]
+          allEnrichedMovies.push(...enrichedNewMovies)
+        }
+
+        // Filter all enriched movies by digital/streaming release date
+        recentDigitalMovies = allEnrichedMovies.filter(movie => {
           const digitalDate = movie.unifiedDates?.digital || movie.unifiedDates?.streaming
-
-          if (!digitalDate) {
-            return false
-          }
-
+          if (!digitalDate) return false
           // Only include movies released between cutoff date and today (inclusive)
           return digitalDate >= cutoffDateString && digitalDate <= todayString
         })
 
         // Move to next page
         currentPage++
-
-        // Break if TMDB has no more results
-        if (result.results.length === 0) {
-          break
-        }
       }
 
       // Sort by digital/streaming release date (newest first)
@@ -196,7 +199,7 @@ class RecentCacheService {
         success: true,
         data: cacheData,
         stats: {
-          totalFetched: allMovies.length,
+          totalFetched: totalFetchedCount,
           totalPages: currentPage - 1,
           filteredCount: recentDigitalMovies.length,
           oldestDate,
