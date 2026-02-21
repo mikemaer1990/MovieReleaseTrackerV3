@@ -68,14 +68,4 @@ export class CacheService {
       console.error('Redis del error:', error)
     }
   }
-
-  static async invalidatePattern(pattern: string): Promise<void> {
-    try {
-      // Note: Upstash Redis doesn't support SCAN, so we'll need to track keys manually
-      // For now, we'll just delete specific keys that we know match the pattern
-      console.warn('Pattern invalidation not fully implemented for Upstash Redis')
-    } catch (error) {
-      console.error('Redis pattern invalidation error:', error)
-    }
-  }
 }

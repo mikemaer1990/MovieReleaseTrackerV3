@@ -5,7 +5,7 @@ import { enrichMoviesWithDatesFast } from '@/lib/tmdb-utils'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
+    const page = parseInt(searchParams.get('page') || '1', 10)
 
     const results = await tmdbService.getPopularMovies(page)
 

@@ -67,7 +67,6 @@ export default function UpcomingMovies() {
   const [movies, setMovies] = useState<Movie[]>([])
   const [userFollows, setUserFollows] = useState<UserFollow[]>([])
   const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Pagination and sorting
@@ -172,21 +171,6 @@ export default function UpcomingMovies() {
     }
   }
 
-  // Force refresh cache (for testing)
-  const handleRefreshCache = async () => {
-    setRefreshing(true)
-    try {
-      const response = await fetch('/api/movies/upcoming', { method: 'POST' })
-      if (response.ok) {
-        await fetchUpcomingMovies(1, sortBy)
-      }
-    } catch (error) {
-      console.error('Error refreshing cache:', error)
-    } finally {
-      setRefreshing(false)
-    }
-  }
-
   // Get follow types for a movie (Level 2 integration)
   const getMovieFollowTypes = (movieId: number): FollowType[] => {
     return userFollows
@@ -246,19 +230,7 @@ export default function UpcomingMovies() {
               )}
             </>
           }
-          actions={
-            process.env.NODE_ENV === 'development' ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefreshCache}
-                disabled={refreshing}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-            ) : undefined
-          }
+          actions={undefined}
         />
       </div>
 

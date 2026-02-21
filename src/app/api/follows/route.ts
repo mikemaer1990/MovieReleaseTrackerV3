@@ -17,13 +17,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (!authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const token = authHeader.slice(7)
+
     // Create separate clients - one for auth verification, one for database operations
     const authClient = createSupabaseAdmin()
-    const token = authHeader.replace('Bearer ', '')
-    
+
     // Verify the token and get user with auth client
     const { data: { user }, error: userError } = await authClient.auth.getUser(token)
-    
+
     if (userError || !user) {
       return NextResponse.json(
         { error: 'Invalid authentication token' },
@@ -125,13 +129,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    if (!authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const token = authHeader.slice(7)
+
     // Create separate clients - one for auth verification, one for database operations
     const authClient = createSupabaseAdmin()
-    const token = authHeader.replace('Bearer ', '')
-    
+
     // Verify the token and get user with auth client
     const { data: { user }, error: userError } = await authClient.auth.getUser(token)
-    
+
     if (userError || !user) {
       return NextResponse.json(
         { error: 'Invalid authentication token' },
@@ -175,8 +183,12 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const movieId = parseInt(searchParams.get('movieId') || '')
+    const movieId = parseInt(searchParams.get('movieId') || '', 10)
     const followType = searchParams.get('followType') as 'THEATRICAL' | 'STREAMING' | 'BOTH' | null
+
+    if (isNaN(movieId) || movieId <= 0) {
+      return NextResponse.json({ error: 'Invalid movieId' }, { status: 400 })
+    }
 
     // Get authorization header
     const authHeader = request.headers.get('authorization')
@@ -187,13 +199,17 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
+    if (!authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const token = authHeader.slice(7)
+
     // Create separate clients - one for auth verification, one for database operations
     const authClient = createSupabaseAdmin()
-    const token = authHeader.replace('Bearer ', '')
-    
+
     // Verify the token and get user with auth client
     const { data: { user }, error: userError } = await authClient.auth.getUser(token)
-    
+
     if (userError || !user) {
       return NextResponse.json(
         { error: 'Invalid authentication token' },
