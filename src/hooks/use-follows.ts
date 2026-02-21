@@ -68,8 +68,12 @@ export function useFollows(): FollowHookResult {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to follow movie')
+        try {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to follow movie')
+        } catch {
+          throw new Error('Failed to follow movie')
+        }
       }
 
       return await response.json()
@@ -95,8 +99,12 @@ export function useFollows(): FollowHookResult {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to unfollow movie')
+        try {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to unfollow movie')
+        } catch {
+          throw new Error('Failed to unfollow movie')
+        }
       }
 
       return await response.json()
@@ -116,8 +124,12 @@ export function useFollows(): FollowHookResult {
       
       if (!response.ok) {
         if (response.status === 401) return []
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to check follow status')
+        try {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to check follow status')
+        } catch {
+          throw new Error('Failed to check follow status')
+        }
       }
 
       const data = await response.json()
@@ -138,8 +150,12 @@ export function useFollows(): FollowHookResult {
       })
       
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to get follows')
+        try {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to get follows')
+        } catch {
+          throw new Error('Failed to get follows')
+        }
       }
 
       const data = await response.json()

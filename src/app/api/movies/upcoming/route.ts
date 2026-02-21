@@ -5,8 +5,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const sortBy = searchParams.get('sort') as 'popularity' | 'release_date' || 'popularity'
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '20')
+    const page = parseInt(searchParams.get('page') || '1', 10)
+    const limit = parseInt(searchParams.get('limit') || '20', 10)
 
     // Validate parameters
     if (!['popularity', 'release_date'].includes(sortBy)) {
@@ -56,36 +56,3 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Optional: Add a POST endpoint for manual cache refresh (useful for testing)
-export async function POST(request: NextRequest) {
-  try {
-    // In a production app, you might want to add authentication here
-    // to prevent unauthorized cache refreshes
-
-    const result = await UpcomingCacheService.rebuildCache()
-
-    if (!result.success) {
-      return NextResponse.json(
-        {
-          error: result.error,
-          stats: result.stats,
-          success: false
-        },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      message: 'Cache rebuilt successfully',
-      stats: result.stats,
-      success: true
-    })
-
-  } catch (error) {
-    console.error('Cache rebuild error:', error)
-    return NextResponse.json(
-      { error: 'Failed to rebuild cache' },
-      { status: 500 }
-    )
-  }
-}
