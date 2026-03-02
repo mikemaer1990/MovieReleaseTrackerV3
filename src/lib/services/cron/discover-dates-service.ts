@@ -371,7 +371,10 @@ export class DiscoverDatesService {
           })
         }
 
-        notificationsByUser.get(userKey)!.movies.push(movieData)
+        const userMovies = notificationsByUser.get(userKey)!.movies
+        if (!userMovies.some(m => m.movieId === movieData.movieId)) {
+          userMovies.push(movieData)
+        }
       }
 
       console.log(`[DiscoverDatesService] Sending emails to ${notificationsByUser.size} users`)
